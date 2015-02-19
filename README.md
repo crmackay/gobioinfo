@@ -14,5 +14,4 @@ version 0.0.-1
 
 - FASTQ writer
 - better sequence structs
-- probably sam and bam io 
-- 
+- probably SAM/BAM, and BED file io features
