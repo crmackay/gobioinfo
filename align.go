@@ -11,24 +11,30 @@ lengths, or sequences which might only partially overlap.
 
 package gobioinfo
 
-//package RNASeq
-
 import (
 	"fmt"
-	//"strings"
 )
 
-/* semi-local alignment
-    - allow local
+/*
+
+# Example:
+
+linker: GTGTCAGTCACTTCCAGCGGTCGTATGCCGTCTTCTGCTTG
+fastq read:
+
+ln1: @HWI-ST560:155:C574EACXX:3:1101:1159:1937 1:N:0:
+ln2: GCTAGGGAGGACGATGCGGTGGTGATGCTGCCACATACACTAAGAAGGTCCTGGACGCGTGTAGTCACTTCCAGCGGTCGTATGCCGTCTTCTGCTTGAA
+ln3: +
+ln4: @@@FFFFFHHFFFFFHGHJ@FH?BFHF<HIGGIJIGJJGG=CCGGGHIC@=DDECHHED3>@CDCDCACC>>@A:9>99@)<>?@>@5)8<@CC:A>A<A
 
 
-test linker: GTGTCAGTCACTTCCAGCGGTCGTATGCCGTCTTCTGCTTG
-test read:
+result:
 
-@HWI-ST560:155:C574EACXX:3:1101:1159:1937 1:N:0:
-GCTAGGGAGGACGATGCGGTGGTGATGCTGCCACATACACTAAGAAGGTCCTGGACGCGTGTAGTCACTTCCAGCGGTCGTATGCCGTCTTCTGCTTGAA
-+
-@@@FFFFFHHFFFFFHGHJ@FH?BFHF<HIGGIJIGJJGG=CCGGGHIC@=DDECHHED3>@CDCDCACC>>@A:9>99@)<>?@>@5)8<@CC:A>A<A
+linker: start-GTGTCAGTCACTTCCAGCGGTCGTATGCCGTCTTCTGCTTG-end
+              |||| ||||||||||||||||||||||||||||||||||||
+read     [...]GTGT-AGTCACTTCCAGCGGTCGTATGCCGTCTTCTGCTTG-end
+
+
 
 */
 
@@ -56,11 +62,6 @@ type PairWiseAlignment struct {
 	GappedQuery             string
 	AlignmentRepresentation string
 }
-
-const (
-	h = 2
-	g = 4
-)
 
 func max(list []MatrixMovement) MatrixMovement {
 
@@ -157,8 +158,10 @@ func align(subject string, query string) PairWiseAlignment {
 	len_j := len_query + 1
 
 	const (
-		h = 5
-		g = 2
+		h             = 6 //gap opening penalty
+		g             = 4 //gap extension penalty
+		matchScore    = 6
+		mismatchScore = -2
 	)
 
 	/* visualization of the alignment matrix
@@ -189,20 +192,20 @@ func align(subject string, query string) PairWiseAlignment {
 	match := func(i int, j int) MatrixMovement {
 
 		var return_value MatrixMovement
-
-		if string(subject[i-1]) == string(query[j-1]) {
+		switch {
+		case string(subject[i-1]) == string(query[j-1]):
 			/*if the position is a match*/
-			return_value.Score = H[j-1][i-1] + 4
+			return_value.Score = H[j-1][i-1] + matchScore
 			return_value.Origin = "m"
 
-		} else if string(query[j-1]) == "N" {
+		case string(query[j-1]) == "N":
 			/*if the base is undefined treat is a neutral*/
 			return_value.Score = H[j-1][i-1]
 			return_value.Origin = "n"
 
-		} else {
+		default:
 			/*otherwise it is a mismatch*/
-			return_value.Score = H[j-1][i-1] - 5
+			return_value.Score = H[j-1][i-1] + mismatchScore
 			return_value.Origin = "x"
 		}
 		return (return_value)
@@ -364,8 +367,8 @@ func align(subject string, query string) PairWiseAlignment {
 
 func Testalign() {
 
-	subject := "GTGTCAGTCACTTCCAGCGGTCGTATGCCGTCTTCTGCTTG"
-	query := "GCTAGGGAGGACGATGCGGTGGTGATGCTGCCACATACACTAAGAAGGTCCTGGACGCGTGTAGTCACTTCCAGCGGTCGTATGCCGTCTTCTGCTTGAA"
+	subject := "GTGTCAGTCACTTCCAGCGGTCGTATGCCGTCTTGCTTG"
+	query := "GCTAGGGAGGACGATGCGGTGGTGATGCTGCCACATACACTAAGAAGGTCCTGGACGCGTGTAGTCACTTCCAGCGGTCGTATGCCGTGTTCTACTTGAA"
 
 	result := align(subject, query)
 	fmt.Println("results:")
