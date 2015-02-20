@@ -167,46 +167,5 @@ func (w *FASTAWriter) Close() {
 
 }
 
-func Testfastq() {
-
-	usr, _ := user.Current()
-	homeDir := usr.HomeDir
-	testPath := homeDir + "/Desktop/coding/golang/src/testing/sample_50_2.fastq"
-
-	fastqscanner := NewFASTQScanner(testPath)
-
-	defer fastqscanner.Close()
-
-	for {
-		myRead := fastqscanner.NextRead()
-		//fmt.Print(myRead.Name)
-		if myRead.Name == "" {
-			break
-		}
-	}
-}
-
-func Testfastqwriter() {
-
-	var err error
-	usr, _ := user.Current()
-	homeDir := usr.HomeDir
-	testPath := homeDir + "/Desktop/coding/golang/src/testing/test.fastq"
-	newRead := FASTQRead{
-		Name:     "this is my read name",
-		Sequence: "AATCGATCGATGAGATAGTC",
-		Misc:     "+",
-		Quality:  "*(&*^%^%$^%#Q(*&0(&(*&^&^%^%$",
-	}
-	w := NewFASTQWriter(testPath)
-
-	err = w.Write(newRead)
-	err = w.Write(newRead)
-	if err != nil {
-		fmt.Println(err)
-	}
-
-	w.Close()
-}
 
 //TODO unit testing?? error handling???

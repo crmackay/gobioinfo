@@ -87,7 +87,7 @@ func maxInt(list []int) int {
 	return (max)
 }
 
-func AlignmentRepr(alignment PairWiseAlignment) PairWiseAlignment {
+func alignmentRepr(alignment PairWiseAlignment) PairWiseAlignment {
 
 	subject := alignment.Subject
 	query := alignment.Query
@@ -146,7 +146,7 @@ func AlignmentRepr(alignment PairWiseAlignment) PairWiseAlignment {
 
 // alignment algorithm
 
-func align(subject string, query string) PairWiseAlignment {
+func Align(subject string, query string) PairWiseAlignment {
 
 	// get the length of the input strings
 	len_subject := len(subject)
@@ -363,23 +363,4 @@ func align(subject string, query string) PairWiseAlignment {
 
 	// return the new alignment object
 	return (newAlignment)
-}
-
-func Testalign() {
-
-	subject := "GTGTCAGTCACTTCCAGCGGTCGTATGCCGTCTTGCTTG"
-	query := "GCTAGGGAGGACGATGCGGTGGTGATGCTGCCACATACACTAAGAAGGTCCTGGACGCGTGTAGTCACTTCCAGCGGTCGTATGCCGTGTTCTACTTGAA"
-
-	result := align(subject, query)
-	fmt.Println("results:")
-	fmt.Println(result.SubjectStart)
-	fmt.Println(result.QueryStart)
-	fmt.Println(result.SubjectAlignLen)
-	fmt.Println(result.QueryAlignLen)
-	fmt.Println(result.Subject)
-	fmt.Println(result.GappedSubject)
-	fmt.Println(result.AlignmentRepresentation)
-	fmt.Println(result.GappedQuery)
-	fmt.Println(result.Query)
-
 }
