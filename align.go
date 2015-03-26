@@ -355,7 +355,7 @@ func Align(subject string, query string) PairWiseAlignment {
 		SubjectStart:  current_position.i - 1,
 		QueryStart:    current_position.j - 1,
 	}
-	newAlignment = AlignmentRepr(newAlignment)
+	newAlignment = alignmentRepr(newAlignment)
 
 	// TODO: create print method for alignment object
 
