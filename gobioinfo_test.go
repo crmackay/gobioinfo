@@ -1,6 +1,10 @@
 package gobioinfo
 
-import "testing"
+import (
+    "testing"
+    "fmt"
+    "os/user"
+    )
 
 func TestFASTQReader(t *testing.T) {
 
@@ -43,18 +47,18 @@ func TestFASTQWriter(t *testing.T) {
 	w.Close()
 }
 
-func TestFASTQReader(t *testing.T) {
+func TestFASTAReader(t *testing.T) {
 }
 
-func TestFASTQWriter(t *testing.T) {
+func TestFASTAWriter(t *testing.T) {
 }
 
-funf TestSGAlign(t *testing.T) {
+func TestSGAlign(t *testing.T) {
 
 	subject := "GTGTCAGTCACTTCCAGCGGTCGTATGCCGTCTTGCTTG"
 	query := "GCTAGGGAGGACGATGCGGTGGTGATGCTGCCACATACACTAAGAAGGTCCTGGACGCGTGTAGTCACTTCCAGCGGTCGTATGCCGTGTTCTACTTGAA"
 
-	result := align(subject, query)
+	result := Align(subject, query)
 	fmt.Println("results:")
 	fmt.Println(result.SubjectStart)
 	fmt.Println(result.QueryStart)
