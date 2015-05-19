@@ -69,11 +69,15 @@ func (s *FASTQScanner) NextRead() FASTQRead {
 
 }
 
+//defines the FASTQWriter structure, which contains a pointer to the file to 
+//which FASTQReads will be written and to a bufio.Writer instance
 type FASTQWriter struct {
 	*os.File
 	*bufio.Writer
 }
 
+//creates a new FASTQWriter instance, which contains the file and writer objects
+//from a file path string
 func NewFASTQWriter(filePath string) FASTQWriter {
 
 	file, err := os.Create(filePath)
@@ -86,29 +90,35 @@ func NewFASTQWriter(filePath string) FASTQWriter {
 	return (fastqwriter)
 }
 
+//writes a FASTQRead to file, returns an error
 func (w *FASTQWriter) Write(r FASTQRead) error {
+	
 	//compose FASTQRead struct into the proper format
-
-	for_writing := strings.Join([]string{"@" + r.Name, r.Sequence, r.Misc, r.Quality, ""}, "\n")
+	for_writing := strings.Join([]string{"@" + r.Name, r.Sequence, r.Misc,
+							 	r.Quality, ""}, "\n")
 	fmt.Println(for_writing)
-	//check if there are enough bytes lefts in the writer buffer
+	
 	var err error
 	var i int
+	
+	//check if there are enough bytes lefts in the writer buffer
 	if w.Writer.Available() < len(for_writing) {
+		
+		//flush the write buffer
 		w.Writer.Flush()
 
-		//flush the write buffer, then write
+		//then write the current read to the buffer
 		_, err = w.Writer.WriteString(for_writing)
 	} else {
-		fmt.Println("here")
 		//write to the write buffer
 		i, err = w.Writer.WriteString(for_writing)
 		fmt.Println("return from writestring: ", i)
-		fmt.Println("here")
 	}
+	//returns any write error that might have occurred
 	return (err)
 }
 
+//closes the FASTQWriter
 func (w *FASTQWriter) Close() {
 	w.Writer.Flush()
 	w.File.Close()
