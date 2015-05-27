@@ -13,6 +13,7 @@ package gobioinfo
 
 import (
 	"fmt"
+	"testing"
 )
 
 /*
@@ -38,12 +39,12 @@ read     [...]GTGT-AGTCACTTCCAGCGGTCGTATGCCGTCTTCTGCTTG-end
 
 */
 
-type MatrixMovement struct {
+type matrixMovement struct {
 	Score  int
 	Origin string
 }
 
-type MatrixPosition struct {
+type matrixPosition struct {
 	i int
 	j int
 }
@@ -63,9 +64,9 @@ type PairWiseAlignment struct {
 	AlignmentRepresentation string
 }
 
-func max(list []MatrixMovement) MatrixMovement {
+func max(list []matrixMovement) matrixMovement {
 
-	var max MatrixMovement
+	var max matrixMovement
 	for i := 0; i < len(list); i++ {
 		if i == 0 {
 			max = list[i]
@@ -189,9 +190,9 @@ func Align(subject string, query string) PairWiseAlignment {
 
 	}
 
-	match := func(i int, j int) MatrixMovement {
+	match := func(i int, j int) matrixMovement {
 
-		var return_value MatrixMovement
+		var return_value matrixMovement
 		switch {
 		case string(subject[i-1]) == string(query[j-1]):
 			/*if the position is a match*/
@@ -211,7 +212,7 @@ func Align(subject string, query string) PairWiseAlignment {
 		return (return_value)
 	}
 
-	traceback := func(start MatrixPosition) MatrixPosition {
+	traceback := func(start matrixPosition) matrixPosition {
 		current_vector := D[start.j][start.i]
 		var next_i int
 		var next_j int
@@ -233,7 +234,7 @@ func Align(subject string, query string) PairWiseAlignment {
 			next_j = start.j - 1
 		}
 
-		next_position := MatrixPosition{i: next_i, j: next_j}
+		next_position := matrixPosition{i: next_i, j: next_j}
 
 		return (next_position)
 	}
@@ -258,10 +259,10 @@ func Align(subject string, query string) PairWiseAlignment {
 				})
 
 				// fill in H and D
-				best_move := max([]MatrixMovement{
+				best_move := max([]matrixMovement{
 					match(i, j),
-					MatrixMovement{I[j][i], "i"},
-					MatrixMovement{J[j][i], "j"},
+					matrixMovement{I[j][i], "i"},
+					matrixMovement{J[j][i], "j"},
 				})
 				H[j][i] = best_move.Score
 				D[j][i] = best_move.Origin
@@ -286,7 +287,7 @@ func Align(subject string, query string) PairWiseAlignment {
 
 	//find max score in the last row or column
 	var max_score int
-	var max_position MatrixPosition
+	var max_position matrixPosition
 
 	for j := 0; j < len_j; j++ {
 		if H[j][len_i-1] > max_score {
@@ -308,7 +309,7 @@ func Align(subject string, query string) PairWiseAlignment {
 
 	//build reverse cigar string
 
-	var current_position MatrixPosition
+	var current_position matrixPosition
 
 	var rev_CIGAR []string
 
@@ -363,4 +364,8 @@ func Align(subject string, query string) PairWiseAlignment {
 
 	// return the new alignment object
 	return (newAlignment)
+}
+
+func TestAlign(t *testing.T) {
+	t.Error("testing the test")
 }

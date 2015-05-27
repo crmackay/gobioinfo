@@ -1,10 +1,10 @@
 package gobioinfo
 
 import (
-    "testing"
-    "fmt"
-    "os/user"
-    )
+	"fmt"
+	"os/user"
+	"testing"
+)
 
 func TestFASTQReader(t *testing.T) {
 
@@ -18,12 +18,13 @@ func TestFASTQReader(t *testing.T) {
 
 	for {
 		myRead := fastqscanner.NextRead()
-		//fmt.Print(myRead.Name)
+		fmt.Print(myRead.Name)
 		if myRead.Name == "" {
 			break
 		}
 	}
 }
+
 
 func TestFASTQWriter(t *testing.T) {
 	var err error
@@ -34,7 +35,8 @@ func TestFASTQWriter(t *testing.T) {
 		Name:     "this is my read name",
 		Sequence: "AATCGATCGATGAGATAGTC",
 		Misc:     "+",
-		Quality:  "*(&*^%^%$^%#Q(*&0(&(*&^&^%^%$",
+		QualityString:  "*(&*^%^%$^%#Q(*&0(&(*&^&^%^%$",
+		QualityPHRED: []uint8{10, 20, 18, 10, 16, 25, 35, 35, 40 ,35, 35, 36, 27, 32, 34, 23, 34, 23, 23, 34, 4, 5,45, 45, 5, 45, 45, 5, 45},
 	}
 	w := NewFASTQWriter(testPath)
 
@@ -69,7 +71,4 @@ func TestSGAlign(t *testing.T) {
 	fmt.Println(result.AlignmentRepresentation)
 	fmt.Println(result.GappedQuery)
 	fmt.Println(result.Query)
-
-    
-
 }
