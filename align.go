@@ -36,7 +36,6 @@ linker: start-GTGTCAGTCACTTCCAGCGGTCGTATGCCGTCTTCTGCTTG-end
 read     [...]GTGT-AGTCACTTCCAGCGGTCGTATGCCGTCTTCTGCTTG-end
 
 
-
 */
 
 type matrixMovement struct {
@@ -62,6 +61,10 @@ type PairWiseAlignment struct {
 	GappedSubject           string
 	GappedQuery             string
 	AlignmentRepresentation string
+}
+
+type Read interface {
+	Align() PairWiseAlignment
 }
 
 func max(list []matrixMovement) matrixMovement {

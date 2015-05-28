@@ -242,7 +242,4 @@ func (w *FASTAWriter) Close() {
 	fmt.Println("closing FASTA writer")
 }
 
-
 //TODO unit testing?? error handling???
-
-
