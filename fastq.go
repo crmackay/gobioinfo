@@ -46,7 +46,7 @@ func (s *FASTQScanner) Close() {
 	fmt.Println("closing fastqscanner")
 }
 
-func newFASTQRead(ln1 string, ln2 []byte, ln3 string, ln4 []byte) (newRead FASTQRead) {
+func newFASTQRead(ln1 string, ln2 []rune, ln3 string, ln4 []rune) (newRead FASTQRead) {
 
 	illumina1_8 := map[string]uint8{
 		"!":  0,
@@ -96,9 +96,7 @@ func newFASTQRead(ln1 string, ln2 []byte, ln3 string, ln4 []byte) (newRead FASTQ
 	qualityArray := make([]uint8, len(ln4))
 
 	for i, qual := range ln4 {
-		qualString := string(qual)
-
-		qualityArray[i] = illumina1_8[qualString]
+		qualityArray[i] = illumina1_8[string(qual)]
 	}
 
 	newSequence := NucleotideSequence{Sequence: ln2}
@@ -111,7 +109,7 @@ func newFASTQRead(ln1 string, ln2 []byte, ln3 string, ln4 []byte) (newRead FASTQ
 func (s *FASTQScanner) NextRead() FASTQRead {
 
 	var ln1, ln3 string
-	var ln2, ln4 []byte
+	var ln2, ln4 []rune
 	var newRead FASTQRead
 
 	if s.Scanner.Scan() {
@@ -120,7 +118,7 @@ func (s *FASTQScanner) NextRead() FASTQRead {
 		return FASTQRead{}
 	}
 	if s.Scanner.Scan() {
-		ln2 = s.Scanner.Bytes()
+		ln2 = []rune(s.Scanner.Text())
 	} else {
 		return FASTQRead{}
 	}
@@ -130,7 +128,7 @@ func (s *FASTQScanner) NextRead() FASTQRead {
 		return FASTQRead{}
 	}
 	if s.Scanner.Scan() {
-		ln4 = s.Scanner.Bytes()
+		ln4 = []rune(s.Scanner.Text())
 	} else {
 		return FASTQRead{}
 	}

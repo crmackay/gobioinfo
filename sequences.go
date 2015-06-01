@@ -5,11 +5,11 @@ import (
 )
 
 type NucleotideSequence struct {
-	Sequence []byte
+	Sequence []rune
 }
 
 type QSequence struct {
-	QualByte []byte
+	QualByte []rune
 	PHRED    []uint8
 	Encoding string
 }
