@@ -24,7 +24,6 @@ type FASTQRead struct {
 	Quality  QSequence
 }
 
-
 type FASTQScanner struct {
 	*os.File
 	*bufio.Scanner
@@ -102,7 +101,7 @@ func newFASTQRead(ln1 string, ln2 []byte, ln3 string, ln4 []byte) (newRead FASTQ
 		qualityArray[i] = illumina1_8[qualString]
 	}
 
-	newSequence := NucleotideSequence{Sequence:ln2}
+	newSequence := NucleotideSequence{Sequence: ln2}
 
 	newRead = FASTQRead{Id: ln1, Sequence: newSequence, Misc: ln3, Quality: QSequence{QualByte: ln4, PHRED: qualityArray, Encoding: "Illumina 1.8"}}
 
