@@ -51,8 +51,8 @@ type matrixPosition struct {
 // create an pairwise alignment structure
 
 type PairWiseAlignment struct {
-	Subject                 string
-	Query                   string
+	Subject                 NucleotideSequence
+	Query                   NucleotideSequence
 	ExpandedCIGAR           []string
 	SubjectStart            int
 	QueryStart              int
@@ -61,10 +61,6 @@ type PairWiseAlignment struct {
 	GappedSubject           string
 	GappedQuery             string
 	AlignmentRepresentation string
-}
-
-type Read interface {
-	Align() PairWiseAlignment
 }
 
 func max(list []matrixMovement) matrixMovement {
@@ -150,7 +146,7 @@ func alignmentRepr(alignment PairWiseAlignment) PairWiseAlignment {
 
 // alignment algorithm
 
-func Align(subject string, query string) PairWiseAlignment {
+func Align(subject NucleotideSequence, query NucleotideSequence) PairWiseAlignment {
 
 	// get the length of the input strings
 	len_subject := len(subject)
@@ -353,8 +349,8 @@ func Align(subject string, query string) PairWiseAlignment {
 	// cigar end = max_position
 
 	newAlignment := PairWiseAlignment{
-		Subject:       subject,
-		Query:         query,
+		Subject:       NucleotideSequence([]rune(subject)),
+		Query:         NucleotideSequence([]rune(query)),
 		ExpandedCIGAR: CIGAR,
 		SubjectStart:  current_position.i - 1,
 		QueryStart:    current_position.j - 1,

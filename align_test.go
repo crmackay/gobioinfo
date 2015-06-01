@@ -7,24 +7,50 @@ import (
 
 func TestSGAlign(t *testing.T) {
 
-	// create FASTA reads
+	// create FASTQ reads
+
+	queryRead := NucleotideSequence([]rune("GCTAGGGAGGACGATGCGGTGGTGATGCTGCCACATACACTAAGAAGGTCCTGGACGCGTGTAGTCACTTCCAGCGGTCGTATGCCGTCTTCTGCTTGAA"))
+
+	subjectRead := NucleotideSequence([]rune("GTGTCAGTCACTTCCAGCGGTCGTATGCCGTCTTGCTTG"))
 
 	// create predicted alignments
 
+	// GTGTCAGTCACTTCCAGCGGTCGTATGCCGTC-T-TGCTTG
+	// |||| ||||||||||||||||||||||||||| | ||||||
+	// GTGT-AGTCACTTCCAGCGGTCGTATGCCGTCTTCTGCTTG
+	//
+
 	// test if the alignments match up
 
-	subject := "GTGTCAGTCACTTCCAGCGGTCGTATGCCGTCTTGCTTG"
-	query := "GCTAGGGAGGACGATGCGGTGGTGATGCTGCCACATACACTAAGAAGGTCCTGGACGCGTGTAGTCACTTCCAGCGGTCGTATGCCGTGTTCTACTTGAA"
+	//subject := "GTGTCAGTCACTTCCAGCGGTCGTATGCCGTCTTGCTTG"
+	//query := "GCTAGGGAGGACGATGCGGTGGTGATGCTGCCACATACACTAAGAAGGTCCTGGACGCGTGTAGTCACTTCCAGCGGTCGTATGCCGTGTTCTACTTGAA"
 
-	result := Align(subject, query)
+	result := Align(subjectRead, queryRead)
+
+	if result.SubjectStart != 0 {
+		t.Error("SubjectStart should be 0, got ", result.SubjectStart)
+	}
+	if result.QueryStart != 58 {
+		t.Error("SubjectStart should be 57, got ", result.QueryStart)
+	}
+	if result.GappedSubject != "GTGTCAGTCACTTCCAGCGGTCGTATGCCGTC-T-TGCTTG" {
+		t.Error("Gapped Subject not matching predicted string")
+	}
+	if result.GappedQuery != "GTGT-AGTCACTTCCAGCGGTCGTATGCCGTCTTCTGCTTG" {
+		t.Error("Gapped Query is not matching predicted string")
+	}
+	if result.AlignmentRepresentation != "|||| ||||||||||||||||||||||||||| | ||||||" {
+		t.Error("Alignment Representation is not matching predicted value")
+	}
+
 	fmt.Println("results:")
-	fmt.Println(result.SubjectStart)
-	fmt.Println(result.QueryStart)
-	fmt.Println(result.SubjectAlignLen)
-	fmt.Println(result.QueryAlignLen)
-	fmt.Println(result.Subject)
-	fmt.Println(result.GappedSubject)
-	fmt.Println(result.AlignmentRepresentation)
-	fmt.Println(result.GappedQuery)
-	fmt.Println(result.Query)
+	fmt.Println("Subject Start\t", result.SubjectStart)
+	fmt.Println("Query Start\t", result.QueryStart)
+	fmt.Println("SubjectAlignLen\t", result.SubjectAlignLen)
+	fmt.Println("QueryAlignLen\t", result.QueryAlignLen)
+	fmt.Println("Subject\t", string(result.Subject))
+	fmt.Println("GappedSubject\t", result.GappedSubject)
+	fmt.Println("AlignRepr\t", result.AlignmentRepresentation)
+	fmt.Println("GappedQuery\t", result.GappedQuery)
+	fmt.Println("Query\t", string(result.Query))
 }

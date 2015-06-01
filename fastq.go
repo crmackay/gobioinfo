@@ -99,7 +99,7 @@ func newFASTQRead(ln1 string, ln2 []rune, ln3 string, ln4 []rune) (newRead FASTQ
 		qualityArray[i] = illumina1_8[string(qual)]
 	}
 
-	newSequence := NucleotideSequence{Sequence: ln2}
+	newSequence := NucleotideSequence(ln2)
 
 	newRead = FASTQRead{Id: ln1, Sequence: newSequence, Misc: ln3, Quality: QSequence{QualByte: ln4, PHRED: qualityArray, Encoding: "Illumina 1.8"}}
 
@@ -164,9 +164,9 @@ func NewFASTQWriter(filePath string) FASTQWriter {
 func (w *FASTQWriter) Write(r FASTQRead) error {
 
 	//compose FASTQRead struct into the proper format
-	for_writing := strings.Join([]string{"@" + r.Id, string(r.Sequence.Sequence), r.Misc,
+	for_writing := strings.Join([]string{"@" + r.Id, string(r.Sequence), r.Misc,
 		string(r.Quality.QualByte), ""}, "\n")
-	fmt.Println(for_writing)
+	//fmt.Println(for_writing)
 
 	var err error
 	var i int
@@ -226,7 +226,7 @@ func (w *FASTAWriter) Write(r FASTQRead) error {
 
 	//TODO: add a method of splitting up the sequence into 80 character long
 	//lines as is the *spec* for fasta
-	for_writing := strings.Join([]string{">" + r.Id, string(r.Sequence.Sequence)}, "\n")
+	for_writing := strings.Join([]string{">" + r.Id, string(r.Sequence)}, "\n")
 	var err error
 	if w.Writer.Available() < len(for_writing) {
 		w.Writer.Flush()

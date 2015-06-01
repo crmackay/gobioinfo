@@ -4,9 +4,7 @@ import (
 //"fmt"
 )
 
-type NucleotideSequence struct {
-	Sequence []rune
-}
+type NucleotideSequence []rune
 
 type QSequence struct {
 	QualByte []rune
