@@ -16,7 +16,7 @@ func TestFASTQReader(t *testing.T) {
 
 	usr, _ := user.Current()
 	homeDir := usr.HomeDir
-	testPath := homeDir + "/Desktop/coding/golang/src/testing/sample_50_2.fastq"
+	testPath := homeDir + "/Desktop/coding/golang/src/github.com/crmackay/gobioinfo/testData/sample_50.fastq"
 
 	fastqscanner := NewFASTQScanner(testPath)
 
@@ -24,8 +24,9 @@ func TestFASTQReader(t *testing.T) {
 
 	for {
 		myRead := fastqscanner.NextRead()
-		fmt.Print(myRead.Name)
-		if myRead.Name == "" {
+		fmt.Println(myRead.Id)
+		fmt.Println(myRead.Sequence.Sequence)
+		if myRead.Id == "" {
 			break
 		}
 	}
@@ -50,11 +51,10 @@ func TestFASTQWriter(t *testing.T) {
 	testPath := homeDir + "/Desktop/coding/golang/src/testing/test.fastq"
 
 	newRead := FASTQRead{
-		Name:          "this is my read name",
-		Sequence:      "AATCGATCGATGAGATAGTC",
+		Id:          "this is my read name",
+		Sequence:      NucleotideSequence{Sequence:[]byte("AATCGATCGATGAGATAGTC")},
 		Misc:          "+",
-		QualityString: "*(&*^%^%$^%#Q(*&0(&(*&^&^%^%$",
-		QualityPHRED:  []uint8{10, 20, 18, 10, 16, 25, 35, 35, 40, 35, 35, 36, 27, 32, 34, 23, 34, 23, 23, 34, 4, 5, 45, 45, 5, 45, 45, 5, 45},
+		Quality:       QSequence{QualByte: []byte("*(&*^%^%$^%#Q(*&0(&(*&^&^%^%$"),PHRED:  []uint8{10, 20, 18, 10, 16, 25, 35, 35, 40, 35, 35, 36, 27, 32, 34, 23, 34, 23, 23, 34, 4, 5, 45, 45, 5, 45, 45, 5, 45}},
 	}
 
 	w := NewFASTQWriter(testPath)

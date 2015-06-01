@@ -4,22 +4,12 @@ import (
 //"fmt"
 )
 
-type nucleotideSequence struct {
+type NucleotideSequence struct {
 	Sequence []byte
-	Name     string
-	Misc     string
-}
-
-type DNASequence struct {
-	nucleotideSequence
-}
-
-type RNASequence struct {
-	nucleotideSequence
 }
 
 type QSequence struct {
-	Quality  []byte
-	PHRED    []byte
+	QualByte []byte
+	PHRED    []uint8
 	Encoding string
 }

@@ -3,19 +3,27 @@ package gobioinfo
 import (
 	"bufio"
 	"fmt"
-	"log"
+	//"log"
 	"os"
-	"strconv"
+	//"strconv"
 	"strings"
 )
 
-type FASTQRead struct {
+/*type FASTQRead struct {
 	Sequence      string
 	QualityString string
 	QualityPHRED  []uint8
 	Name          string
 	Misc          string
+}*/
+
+type FASTQRead struct {
+	Id       string
+	Sequence NucleotideSequence
+	Misc     string
+	Quality  QSequence
 }
+
 
 type FASTQScanner struct {
 	*os.File
@@ -39,7 +47,7 @@ func (s *FASTQScanner) Close() {
 	fmt.Println("closing fastqscanner")
 }
 
-func newFASTQRead(ln1 string, ln2 string, ln3 string, ln4 string) (newRead FASTQRead) {
+func newFASTQRead(ln1 string, ln2 []byte, ln3 string, ln4 []byte) (newRead FASTQRead) {
 
 	illumina1_8 := map[string]uint8{
 		"!":  0,
@@ -85,37 +93,35 @@ func newFASTQRead(ln1 string, ln2 string, ln3 string, ln4 string) (newRead FASTQ
 		"I":  40,
 		"J":  41,
 	}
-	fmt.Println(illumina1_8)
 
 	qualityArray := make([]uint8, len(ln4))
 
 	for i, qual := range ln4 {
-		qualString, err := strconv.Unquote(strconv.QuoteRune(qual))
-		if err != nil {
-			log.Fatal(err)
-		}
-		fmt.Println(i, illumina1_8[qualString], qualString)
+		qualString := string(qual)
+
 		qualityArray[i] = illumina1_8[qualString]
 	}
 
-	newRead = FASTQRead{Name: ln1, Sequence: ln2, Misc: ln3, QualityPHRED: qualityArray, QualityString: ln4}
+	newSequence := NucleotideSequence{Sequence:ln2}
+
+	newRead = FASTQRead{Id: ln1, Sequence: newSequence, Misc: ln3, Quality: QSequence{QualByte: ln4, PHRED: qualityArray, Encoding: "Illumina 1.8"}}
 
 	return (newRead)
 }
 
 func (s *FASTQScanner) NextRead() FASTQRead {
 
-	var ln1, ln2, ln3, ln4 string
+	var ln1, ln3 string
+	var ln2, ln4 []byte
 	var newRead FASTQRead
 
 	if s.Scanner.Scan() {
 		ln1 = s.Scanner.Text()
-		fmt.Print(ln1)
 	} else {
 		return FASTQRead{}
 	}
 	if s.Scanner.Scan() {
-		ln2 = s.Scanner.Text()
+		ln2 = s.Scanner.Bytes()
 	} else {
 		return FASTQRead{}
 	}
@@ -125,13 +131,12 @@ func (s *FASTQScanner) NextRead() FASTQRead {
 		return FASTQRead{}
 	}
 	if s.Scanner.Scan() {
-		ln4 = s.Scanner.Text()
+		ln4 = s.Scanner.Bytes()
 	} else {
 		return FASTQRead{}
 	}
 
 	newRead = newFASTQRead(ln1, ln2, ln3, ln4)
-	//newRead = FASTQRead{Name: ln1, Sequence: ln2, Misc: ln3, QualityString: ln4, QualityPHRED: []uint8{10, 20, 18, 10, 16, 25, 35, 35, 40 ,35, 35, 36, 27, 32, 34, 23, 34, 23, 23, 34, 4, 5,45, 45, 5, 45, 45, 5, 45}}
 
 	return (newRead)
 
@@ -162,8 +167,8 @@ func NewFASTQWriter(filePath string) FASTQWriter {
 func (w *FASTQWriter) Write(r FASTQRead) error {
 
 	//compose FASTQRead struct into the proper format
-	for_writing := strings.Join([]string{"@" + r.Name, r.Sequence, r.Misc,
-		r.QualityString, ""}, "\n")
+	for_writing := strings.Join([]string{"@" + r.Id, string(r.Sequence.Sequence), r.Misc,
+		string(r.Quality.QualByte), ""}, "\n")
 	fmt.Println(for_writing)
 
 	var err error
@@ -224,7 +229,7 @@ func (w *FASTAWriter) Write(r FASTQRead) error {
 
 	//TODO: add a method of splitting up the sequence into 80 character long
 	//lines as is the *spec* for fasta
-	for_writing := strings.Join([]string{">" + r.Name, r.Sequence}, "\n")
+	for_writing := strings.Join([]string{">" + r.Id, string(r.Sequence.Sequence)}, "\n")
 	var err error
 	if w.Writer.Available() < len(for_writing) {
 		w.Writer.Flush()
