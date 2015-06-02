@@ -51,8 +51,8 @@ type matrixPosition struct {
 // create an pairwise alignment structure
 
 type PairWiseAlignment struct {
-	Subject                 NucleotideSequence
-	Query                   NucleotideSequence
+	Subject                 FASTARead
+	Query                   FASTQRead
 	ExpandedCIGAR           []string
 	SubjectStart            int
 	QueryStart              int
@@ -89,8 +89,8 @@ func maxInt(list []int) int {
 
 func alignmentRepr(alignment PairWiseAlignment) PairWiseAlignment {
 
-	subject := alignment.Subject
-	query := alignment.Query
+	subject := alignment.Subject.Sequence
+	query := alignment.Query.Sequence
 	CIGAR := alignment.ExpandedCIGAR
 	subject_start := alignment.SubjectStart
 	query_start := alignment.QueryStart
@@ -146,14 +146,14 @@ func alignmentRepr(alignment PairWiseAlignment) PairWiseAlignment {
 
 // alignment algorithm
 
-func Align(subject NucleotideSequence, query NucleotideSequence) PairWiseAlignment {
+func (query FASTQRead) Align(subject FASTARead) PairWiseAlignment {
 
 	// get the length of the input strings
-	len_subject := len(subject)
+	len_subject := len(subject.Sequence)
 
 	len_i := len_subject + 1
 
-	len_query := len(query)
+	len_query := len(query.Sequence)
 
 	len_j := len_query + 1
 
@@ -193,12 +193,12 @@ func Align(subject NucleotideSequence, query NucleotideSequence) PairWiseAlignme
 
 		var return_value matrixMovement
 		switch {
-		case string(subject[i-1]) == string(query[j-1]):
+		case string(subject.Sequence[i-1]) == string(query.Sequence[j-1]):
 			/*if the position is a match*/
 			return_value.Score = H[j-1][i-1] + matchScore
 			return_value.Origin = "m"
 
-		case string(query[j-1]) == "N":
+		case string(query.Sequence[j-1]) == "N":
 			/*if the base is undefined treat is a neutral*/
 			return_value.Score = H[j-1][i-1]
 			return_value.Origin = "n"
@@ -349,8 +349,8 @@ func Align(subject NucleotideSequence, query NucleotideSequence) PairWiseAlignme
 	// cigar end = max_position
 
 	newAlignment := PairWiseAlignment{
-		Subject:       NucleotideSequence([]rune(subject)),
-		Query:         NucleotideSequence([]rune(query)),
+		Subject:       subject,
+		Query:         query,
 		ExpandedCIGAR: CIGAR,
 		SubjectStart:  current_position.i - 1,
 		QueryStart:    current_position.j - 1,

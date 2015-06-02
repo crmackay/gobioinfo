@@ -24,6 +24,11 @@ type FASTQRead struct {
 	Quality  QSequence
 }
 
+type FASTARead struct {
+	Id       string
+	Sequence NucleotideSequence
+}
+
 type FASTQScanner struct {
 	*os.File
 	*bufio.Scanner

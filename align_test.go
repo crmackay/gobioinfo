@@ -9,9 +9,16 @@ func TestSGAlign(t *testing.T) {
 
 	// create FASTQ reads
 
-	queryRead := NucleotideSequence([]rune("GCTAGGGAGGACGATGCGGTGGTGATGCTGCCACATACACTAAGAAGGTCCTGGACGCGTGTAGTCACTTCCAGCGGTCGTATGCCGTCTTCTGCTTGAA"))
-
-	subjectRead := NucleotideSequence([]rune("GTGTCAGTCACTTCCAGCGGTCGTATGCCGTCTTGCTTG"))
+	queryRead := newFASTQRead(
+		"test Query",
+		[]rune("GCTAGGGAGGACGATGCGGTGGTGATGCTGCCACATACACTAAGAAGGTCCTGGACGCGTGTAGTCACTTCCAGCGGTCGTATGCCGTCTTCTGCTTGAA"),
+		"",
+		[]rune("@@@FFFFFHHFFFFFHGHJ@FH?BFHF<HIGGIJIGJJGG=CCGGGHIC@=DDECHHED3>@CDCDCACC>>@A:9>99@)<>?@>@5)8<@CC:A>A<A"),
+	)
+	subjectRead := FASTARead{
+		Sequence: NucleotideSequence([]rune("GTGTCAGTCACTTCCAGCGGTCGTATGCCGTCTTGCTTG")),
+		Id:       "test Subject",
+	}
 
 	// create predicted alignments
 
@@ -25,7 +32,7 @@ func TestSGAlign(t *testing.T) {
 	//subject := "GTGTCAGTCACTTCCAGCGGTCGTATGCCGTCTTGCTTG"
 	//query := "GCTAGGGAGGACGATGCGGTGGTGATGCTGCCACATACACTAAGAAGGTCCTGGACGCGTGTAGTCACTTCCAGCGGTCGTATGCCGTGTTCTACTTGAA"
 
-	result := Align(subjectRead, queryRead)
+	result := queryRead.Align(subjectRead)
 
 	if result.SubjectStart != 0 {
 		t.Error("SubjectStart should be 0, got ", result.SubjectStart)
@@ -48,9 +55,9 @@ func TestSGAlign(t *testing.T) {
 	fmt.Println("Query Start\t", result.QueryStart)
 	fmt.Println("SubjectAlignLen\t", result.SubjectAlignLen)
 	fmt.Println("QueryAlignLen\t", result.QueryAlignLen)
-	fmt.Println("Subject\t", string(result.Subject))
+	fmt.Println("Subject\t", string(result.Subject.Sequence))
 	fmt.Println("GappedSubject\t", result.GappedSubject)
 	fmt.Println("AlignRepr\t", result.AlignmentRepresentation)
 	fmt.Println("GappedQuery\t", result.GappedQuery)
-	fmt.Println("Query\t", string(result.Query))
+	fmt.Println("Query\t", string(result.Query.Sequence))
 }
