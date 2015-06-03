@@ -17,9 +17,9 @@ func TestSGAlign(t *testing.T) {
 	)
 	subjectRead := FASTARead{
 		DNASequence: DNASequence{
-		    Sequence: NucleotideSequence([]rune("GTGTCAGTCACTTCCAGCGGTCGTATGCCGTCTTGCTTG")),
+			Sequence: NucleotideSequence([]rune("GTGTCAGTCACTTCCAGCGGTCGTATGCCGTCTTGCTTG")),
 		},
-		Id:       "test Subject",
+		Id: "test Subject",
 	}
 
 	// create predicted alignments

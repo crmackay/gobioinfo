@@ -51,11 +51,11 @@ func TestFASTQWriter(t *testing.T) {
 	testPath := homeDir + "/Desktop/coding/golang/src/testing/test.fastq"
 
 	newRead := FASTQRead{
-		Id:       "this is my read name",
+		Id: "this is my read name",
 		DNASequence: DNASequence{
-		    Sequence:NucleotideSequence([]rune("AATCGATCGATGAGATAGTC")),
+			Sequence: NucleotideSequence([]rune("AATCGATCGATGAGATAGTC")),
 		},
-		Misc:     "+",
+		Misc:      "+",
 		QSequence: QSequence{QualByteSequence: []rune("*(&*^%^%$^%#Q(*&0(&(*&^&^%^%$"), PHRED: []uint8{10, 20, 18, 10, 16, 25, 35, 35, 40, 35, 35, 36, 27, 32, 34, 23, 34, 23, 23, 34, 4, 5, 45, 45, 5, 45, 45, 5, 45}},
 	}
 

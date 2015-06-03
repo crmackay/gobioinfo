@@ -14,7 +14,7 @@ type DNASequence struct {
 type FASTQRead struct {
 	Id string
 	DNASequence
-	Misc    string
+	Misc string
 	QSequence
 }
 
@@ -101,15 +101,15 @@ func newFASTQRead(ln1 string, ln2 []rune, ln3 string, ln4 []rune) (newRead FASTQ
 	newSequence := NucleotideSequence(ln2)
 
 	newRead = FASTQRead{
-		Id: ln1, 
+		Id: ln1,
 		DNASequence: DNASequence{
 			Sequence: newSequence,
-		}, 
-		Misc: ln3, 
+		},
+		Misc: ln3,
 		QSequence: QSequence{
-			QualByteSequence: ln4, 
-			PHRED: qualityArray, 
-			Encoding: "Illumina 1.8",
+			QualByteSequence: ln4,
+			PHRED:            qualityArray,
+			Encoding:         "Illumina 1.8",
 		},
 	}
 
