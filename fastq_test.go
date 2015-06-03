@@ -76,3 +76,18 @@ func TestFASTAReader(t *testing.T) {
 
 func TestFASTAWriter(t *testing.T) {
 }
+
+func TestDecodeQualByteSequence(t *testing.T) {
+
+	testSequence := []rune("@@@FFFFFHHFFFFFHGHJ@FH?")
+
+	result := DecodeQualByteSequence(testSequence, "illumina 1.8")
+	//                         @    @   @   F   F   F   F   F   H   H   F   F   F   F   F   H   G   H   J   @   F   H   ?
+	predictedResult := []uint8{31, 31, 31, 37, 37, 37, 37, 37, 39, 39, 37, 37, 37, 37, 37, 39, 38, 39, 41, 31, 37, 39, 30}
+
+	for i, value := range result {
+		if value != predictedResult[i] {
+			t.Error("PHRED decoding not as predicted: got", value, " expeceted ", predictedResult[i])
+		}
+	}
+}
