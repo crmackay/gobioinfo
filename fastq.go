@@ -3,30 +3,24 @@ package gobioinfo
 import (
 	"bufio"
 	"fmt"
-	//"log"
 	"os"
-	//"strconv"
 	"strings"
 )
 
-/*type FASTQRead struct {
-	Sequence      string
-	QualityString string
-	QualityPHRED  []uint8
-	Name          string
-	Misc          string
-}*/
+type DNASequence struct {
+	Sequence NucleotideSequence
+}
 
 type FASTQRead struct {
-	Id       string
-	Sequence NucleotideSequence
-	Misc     string
-	Quality  QSequence
+	Id string
+	DNASequence
+	Misc    string
+	QSequence
 }
 
 type FASTARead struct {
-	Id       string
-	Sequence NucleotideSequence
+	Id string
+	DNASequence
 }
 
 type FASTQScanner struct {
@@ -106,7 +100,18 @@ func newFASTQRead(ln1 string, ln2 []rune, ln3 string, ln4 []rune) (newRead FASTQ
 
 	newSequence := NucleotideSequence(ln2)
 
-	newRead = FASTQRead{Id: ln1, Sequence: newSequence, Misc: ln3, Quality: QSequence{QualByte: ln4, PHRED: qualityArray, Encoding: "Illumina 1.8"}}
+	newRead = FASTQRead{
+		Id: ln1, 
+		DNASequence: DNASequence{
+			Sequence: newSequence,
+		}, 
+		Misc: ln3, 
+		QSequence: QSequence{
+			QualByteSequence: ln4, 
+			PHRED: qualityArray, 
+			Encoding: "Illumina 1.8",
+		},
+	}
 
 	return (newRead)
 }
@@ -170,7 +175,7 @@ func (w *FASTQWriter) Write(r FASTQRead) error {
 
 	//compose FASTQRead struct into the proper format
 	for_writing := strings.Join([]string{"@" + r.Id, string(r.Sequence), r.Misc,
-		string(r.Quality.QualByte), ""}, "\n")
+		string(r.QualByteSequence), ""}, "\n")
 	//fmt.Println(for_writing)
 
 	var err error
@@ -193,7 +198,7 @@ func (w *FASTQWriter) Write(r FASTQRead) error {
 	return (err)
 }
 
-//closes the FASTQWriter
+// flushed the FASTQWriter buffer and closes it
 func (w *FASTQWriter) Close() {
 	w.Writer.Flush()
 	w.File.Close()
@@ -213,6 +218,8 @@ type FASTAWriter struct {
 	*bufio.Writer
 }
 
+// creata a FASTAWriter, which is a wrapper around the bufio.Writer
+// it takes a string file path as input
 func NewFASTAWriter(filePath string) FASTAWriter {
 	file, err := os.Create(filePath)
 
@@ -225,7 +232,9 @@ func NewFASTAWriter(filePath string) FASTAWriter {
 
 }
 
+// Write a FASTQ read to file
 func (w *FASTAWriter) Write(r FASTQRead) error {
+
 	//put the read name and sequence in the proper format(adding a carrot) and
 	//splitting by newlines (\n)
 
@@ -243,6 +252,7 @@ func (w *FASTAWriter) Write(r FASTQRead) error {
 	return (err)
 }
 
+// this flushes the bufio.Writer buffer to file and then closes the file
 func (w *FASTAWriter) Close() {
 	w.Writer.Flush()
 	w.File.Close()

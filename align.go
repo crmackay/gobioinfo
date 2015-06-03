@@ -51,8 +51,8 @@ type matrixPosition struct {
 // create an pairwise alignment structure
 
 type PairWiseAlignment struct {
-	Subject                 FASTARead
-	Query                   FASTQRead
+	Subject                 NucleotideSequence
+	Query                   NucleotideSequence
 	ExpandedCIGAR           []string
 	SubjectStart            int
 	QueryStart              int
@@ -89,8 +89,8 @@ func maxInt(list []int) int {
 
 func alignmentRepr(alignment PairWiseAlignment) PairWiseAlignment {
 
-	subject := alignment.Subject.Sequence
-	query := alignment.Query.Sequence
+	subject := alignment.Subject
+	query := alignment.Query
 	CIGAR := alignment.ExpandedCIGAR
 	subject_start := alignment.SubjectStart
 	query_start := alignment.QueryStart
@@ -146,14 +146,16 @@ func alignmentRepr(alignment PairWiseAlignment) PairWiseAlignment {
 
 // alignment algorithm
 
-func (query FASTQRead) Align(subject FASTARead) PairWiseAlignment {
+//TODO: change this to simply be func (query NucleotideSequence) Align(subject NulceotideSequence){}
+
+func (query NucleotideSequence) Align(subject NucleotideSequence) PairWiseAlignment {
 
 	// get the length of the input strings
-	len_subject := len(subject.Sequence)
+	len_subject := len(subject)
 
 	len_i := len_subject + 1
 
-	len_query := len(query.Sequence)
+	len_query := len(query)
 
 	len_j := len_query + 1
 
@@ -193,12 +195,12 @@ func (query FASTQRead) Align(subject FASTARead) PairWiseAlignment {
 
 		var return_value matrixMovement
 		switch {
-		case string(subject.Sequence[i-1]) == string(query.Sequence[j-1]):
+		case string(subject[i-1]) == string(query[j-1]):
 			/*if the position is a match*/
 			return_value.Score = H[j-1][i-1] + matchScore
 			return_value.Origin = "m"
 
-		case string(query.Sequence[j-1]) == "N":
+		case string(query[j-1]) == "N":
 			/*if the base is undefined treat is a neutral*/
 			return_value.Score = H[j-1][i-1]
 			return_value.Origin = "n"

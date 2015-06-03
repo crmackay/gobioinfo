@@ -16,7 +16,9 @@ func TestSGAlign(t *testing.T) {
 		[]rune("@@@FFFFFHHFFFFFHGHJ@FH?BFHF<HIGGIJIGJJGG=CCGGGHIC@=DDECHHED3>@CDCDCACC>>@A:9>99@)<>?@>@5)8<@CC:A>A<A"),
 	)
 	subjectRead := FASTARead{
-		Sequence: NucleotideSequence([]rune("GTGTCAGTCACTTCCAGCGGTCGTATGCCGTCTTGCTTG")),
+		DNASequence: DNASequence{
+		    Sequence: NucleotideSequence([]rune("GTGTCAGTCACTTCCAGCGGTCGTATGCCGTCTTGCTTG")),
+		},
 		Id:       "test Subject",
 	}
 
@@ -32,7 +34,7 @@ func TestSGAlign(t *testing.T) {
 	//subject := "GTGTCAGTCACTTCCAGCGGTCGTATGCCGTCTTGCTTG"
 	//query := "GCTAGGGAGGACGATGCGGTGGTGATGCTGCCACATACACTAAGAAGGTCCTGGACGCGTGTAGTCACTTCCAGCGGTCGTATGCCGTGTTCTACTTGAA"
 
-	result := queryRead.Align(subjectRead)
+	result := queryRead.Sequence.Align(subjectRead.Sequence)
 
 	if result.SubjectStart != 0 {
 		t.Error("SubjectStart should be 0, got ", result.SubjectStart)
@@ -55,9 +57,9 @@ func TestSGAlign(t *testing.T) {
 	fmt.Println("Query Start\t", result.QueryStart)
 	fmt.Println("SubjectAlignLen\t", result.SubjectAlignLen)
 	fmt.Println("QueryAlignLen\t", result.QueryAlignLen)
-	fmt.Println("Subject\t", string(result.Subject.Sequence))
+	fmt.Println("Subject\t", string(result.Subject))
 	fmt.Println("GappedSubject\t", result.GappedSubject)
 	fmt.Println("AlignRepr\t", result.AlignmentRepresentation)
 	fmt.Println("GappedQuery\t", result.GappedQuery)
-	fmt.Println("Query\t", string(result.Query.Sequence))
+	fmt.Println("Query\t", string(result.Query))
 }

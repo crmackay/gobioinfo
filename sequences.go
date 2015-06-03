@@ -7,7 +7,7 @@ import (
 type NucleotideSequence []rune
 
 type QSequence struct {
-	QualByte []rune
+	QualByteSequence []rune
 	PHRED    []uint8
 	Encoding string
 }
