@@ -13,7 +13,6 @@ package gobioinfo
 
 import (
 	"fmt"
-	"testing"
 )
 
 /*
@@ -365,8 +364,4 @@ func (query NucleotideSequence) Align(subject NucleotideSequence) PairWiseAlignm
 
 	// return the new alignment object
 	return (newAlignment)
-}
-
-func TestAlign(t *testing.T) {
-	t.Error("testing the test")
 }
