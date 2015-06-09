@@ -19,7 +19,7 @@ func TestSGAlign(t *testing.T) {
 		DNASequence: DNASequence{
 			Sequence: NucleotideSequence([]rune("GTGTCAGTCACTTCCAGCGGTCGTATGCCGTCTTGCTTG")),
 		},
-		Id: "test Subject",
+		ID: "test Subject",
 	}
 
 	// create predicted alignments
