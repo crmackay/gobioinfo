@@ -6,6 +6,20 @@ import (
 	"testing"
 )
 
+// func NewFASTQScanner(filePath string) FASTQScanner
+func TestNewFASTQScanner(t *testing.T) {
+
+}
+
+//func (s *FASTQScanner) NextRead() FASTQRead {}
+func TestFASTQScannerNextRead(t *testing.T) {
+
+}
+
+// func NewFASTQWriter(filePath string) FASTQWriter {}
+
+// func (w *FASTQWriter) Write(r FASTQRead) error {}
+
 func TestFASTQReader(t *testing.T) {
 
 	// read FASTQ file
@@ -71,23 +85,6 @@ func TestFASTQWriter(t *testing.T) {
 	w.Close()
 }
 
-func TestFASTAReader(t *testing.T) {
-}
-
-func TestFASTAWriter(t *testing.T) {
-}
-
-func TestDecodeQualByteSequence(t *testing.T) {
-
-	testSequence := []rune("@@@FFFFFHHFFFFFHGHJ@FH?")
-
-	result := DecodePHRED(testSequence, "illumina_1.8")
-	//                         @    @   @   F   F   F   F   F   H   H   F   F   F   F   F   H   G   H   J   @   F   H   ?
-	predictedResult := []uint8{31, 31, 31, 37, 37, 37, 37, 37, 39, 39, 37, 37, 37, 37, 37, 39, 38, 39, 41, 31, 37, 39, 30}
-
-	for i, value := range result {
-		if value != predictedResult[i] {
-			t.Error("PHRED decoding not as predicted: got", value, " expeceted ", predictedResult[i])
-		}
-	}
-}
+// func NewFASTAWriter(filePath string) FASTAWriter {}
+// func (w *FASTAWriter) Write(r FASTQRead) error {}
+// func (w *FASTAWriter) Close() {}

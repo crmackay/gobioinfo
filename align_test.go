@@ -9,7 +9,7 @@ func TestSGAlign(t *testing.T) {
 
 	// create FASTQ reads
 
-	queryRead := newFASTQRead(
+	queryRead := NewFASTQRead(
 		"test Query",
 		[]rune("GCTAGGGAGGACGATGCGGTGGTGATGCTGCCACATACACTAAGAAGGTCCTGGACGCGTGTAGTCACTTCCAGCGGTCGTATGCCGTCTTCTGCTTGAA"),
 		"",
@@ -63,3 +63,5 @@ func TestSGAlign(t *testing.T) {
 	fmt.Println("GappedQuery\t", result.GappedQuery)
 	fmt.Println("Query\t", string(result.Query))
 }
+
+// func alignmentRepr(alignment PairWiseAlignment) PairWiseAlignment {}

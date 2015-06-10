@@ -37,6 +37,20 @@ read     [...]GTGT-AGTCACTTCCAGCGGTCGTATGCCGTCTTCTGCTTG-end
 
 */
 
+// PairWiseAlignment creates an pairwise alignment structure
+type PairWiseAlignment struct {
+	Subject                 NucleotideSequence
+	Query                   NucleotideSequence
+	ExpandedCIGAR           []string
+	SubjectStart            int
+	QueryStart              int
+	SubjectAlignLen         int
+	QueryAlignLen           int
+	GappedSubject           string
+	GappedQuery             string
+	AlignmentRepresentation string
+}
+
 type matrixMovement struct {
 	Score  int
 	Origin string
@@ -130,8 +144,6 @@ func alignmentRepr(alignment PairWiseAlignment) PairWiseAlignment {
 
 // alignment algorithm
 
-//TODO: change this to simply be func (query NucleotideSequence) Align(subject NulceotideSequence){}
-
 // Align applies a semi-global alignment algorithm to the query and subject sequences
 func (query NucleotideSequence) Align(subject NucleotideSequence) PairWiseAlignment {
 
@@ -151,21 +163,21 @@ func (query NucleotideSequence) Align(subject NucleotideSequence) PairWiseAlignm
 		mismatchScore = -2
 	)
 
-	/* visualization of the alignment matrix
+	/* TODO: add visualization of the alignment matrix
 
 	   subjectString
 
 
 	*/
 
-	// create matrices (i dimension = position along subject)
+	// create matrices (j dimension = position along query)
 
 	H := make([][]int, lenJ)
 	I := make([][]int, lenJ)
 	J := make([][]int, lenJ)
 	D := make([][]string, lenJ)
 
-	// create the inner arrays (j dimension = position along query)
+	// create the inner arrays (i dimension = position along subject)
 
 	for index := range H {
 
@@ -344,6 +356,10 @@ func (query NucleotideSequence) Align(subject NucleotideSequence) PairWiseAlignm
 		QueryStart:    currentPosition.j - 1,
 	}
 	newAlignment = alignmentRepr(newAlignment)
+
+	// fmt.Println(newAlignment.GappedQuery)
+	// fmt.Println(newAlignment.AlignmentRepresentation)
+	// fmt.Println(newAlignment.GappedSubject)
 
 	// TODO: create print method for alignment object
 

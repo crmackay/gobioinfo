@@ -34,30 +34,6 @@ func (s *FASTQScanner) Close() {
 	fmt.Println("closing fastqscanner")
 }
 
-func newFASTQRead(ln1 string, ln2 []rune, ln3 string, ln4 []rune) (newRead FASTQRead) {
-
-	phredEncoding := "illumina_1.8"
-
-	decodedQuality := DecodePHRED(ln4, phredEncoding)
-
-	newSequence := NucleotideSequence(ln2)
-
-	newRead = FASTQRead{
-		ID: ln1,
-		DNASequence: DNASequence{
-			Sequence: newSequence,
-		},
-		Misc: ln3,
-		PHRED: PHRED{
-			Encoded:  ln4,
-			Decoded:  decodedQuality,
-			Encoding: phredEncoding,
-		},
-	}
-
-	return (newRead)
-}
-
 // NextRead returns the next read from a FASTQScanner
 func (s *FASTQScanner) NextRead() FASTQRead {
 
@@ -86,7 +62,7 @@ func (s *FASTQScanner) NextRead() FASTQRead {
 		return FASTQRead{}
 	}
 
-	newRead = newFASTQRead(ln1, ln2, ln3, ln4)
+	newRead = NewFASTQRead(ln1, ln2, ln3, ln4)
 
 	return (newRead)
 
@@ -156,14 +132,15 @@ functions, they only differ in the exact string that is passed to the io buffer
 
 */
 
-// FASTAWriter is a wrapper around bufio.Writer which allows for FASTQ formatting writing of FASTQRead's
+// FASTAWriter is a wrapper around bufio.Writer which allows for FASTA
+// formatting writing of FASTAReads
 type FASTAWriter struct {
 	*os.File
 	*bufio.Writer
 }
 
-// NewFASTAWriter creates a new FASTAWriter, which is a wrapper around the bufio.Writer
-// it takes a string file path as input
+// NewFASTAWriter creates a new FASTAWriter, which is a wrapper around the
+// bufio.Writer it takes a string file path as input
 func NewFASTAWriter(filePath string) FASTAWriter {
 	file, err := os.Create(filePath)
 
@@ -176,7 +153,7 @@ func NewFASTAWriter(filePath string) FASTAWriter {
 
 }
 
-// Write a FASTQ read to file
+// Writes a FASTA read to file
 func (w *FASTAWriter) Write(r FASTQRead) error {
 
 	//put the read name and sequence in the proper format(adding a carrot) and
@@ -203,4 +180,7 @@ func (w *FASTAWriter) Close() {
 	fmt.Println("closing FASTA writer")
 }
 
-//TODO unit testing?? error handling???
+/*
+TODO: add proper error handling
+TODO: change the filepath parameters to io.Reader, or io.Writer objects?
+*/
