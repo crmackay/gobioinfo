@@ -63,11 +63,10 @@ type matrixPosition struct {
 
 func max(list []matrixMovement) matrixMovement {
 
-	var max matrixMovement
-	for i := 0; i < len(list); i++ {
-		if i == 0 {
-			max = list[i]
-		} else if list[i].Score > max.Score {
+	max := list[0]
+
+	for i := 1; i < len(list); i++ {
+		if list[i].Score > max.Score {
 			max = list[i]
 		}
 	}
@@ -76,12 +75,14 @@ func max(list []matrixMovement) matrixMovement {
 
 func maxInt(list []int) int {
 
-	max := 0
-	for i := 0; i < len(list); i++ {
+	max := list[0]
+	for i := 1; i < len(list); i++ {
 		if list[i] > max {
 			max = list[i]
 		}
 	}
+	//	fmt.Println(list)
+	//	fmt.Println(max)
 	return (max)
 }
 
@@ -157,10 +158,10 @@ func (query NucleotideSequence) Align(subject NucleotideSequence) PairWiseAlignm
 	lenJ := lenQuery + 1
 
 	const (
-		h             = 6 //gap opening penalty
-		g             = 4 //gap extension penalty
-		matchScore    = 6
-		mismatchScore = -2
+		h             = 100 //gap opening penalty
+		g             = 5   //gap extension penalty
+		matchScore    = 15
+		mismatchScore = -13
 	)
 
 	/* TODO: add visualization of the alignment matrix
@@ -296,12 +297,18 @@ func (query NucleotideSequence) Align(subject NucleotideSequence) PairWiseAlignm
 	}
 
 	for i := 0; i < lenI; i++ {
+
 		if H[lenJ-1][i] > maxScore {
 			maxScore = H[lenJ-1][i]
 			maxPosition.i = i
 			maxPosition.j = lenJ - 1
 		}
+		//	fmt.Println("i: ", i)
+		//	fmt.Println("H[lenJ-1][i]: ", H[lenJ-1][i])
 	}
+	//	fmt.Println("max score: ", maxScore)
+	//	fmt.Println("maxPosition.i: ", maxPosition.i)
+	//	fmt.Println("maxPosition.j: ", maxPosition.j)
 
 	//fmt.Println(string("max position"),maxPosition.i, maxPosition.j)
 
@@ -357,9 +364,9 @@ func (query NucleotideSequence) Align(subject NucleotideSequence) PairWiseAlignm
 	}
 	newAlignment = alignmentRepr(newAlignment)
 
-	// fmt.Println(newAlignment.GappedQuery)
-	// fmt.Println(newAlignment.AlignmentRepresentation)
-	// fmt.Println(newAlignment.GappedSubject)
+	fmt.Println(newAlignment.GappedQuery)
+	fmt.Println(newAlignment.AlignmentRepresentation)
+	fmt.Println(newAlignment.GappedSubject)
 
 	// TODO: create print method for alignment object
 
