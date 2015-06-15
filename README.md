@@ -3,7 +3,9 @@ my golang bioinformatics package
 
 version 0.0.-1
 
-**this is all experimental code** it will break in the future so be forwarned...
+**this is all experimental code** which is not all totally *idiomatic* go. I am learning as I go along, so take this as you will.
+
+I would recommend the great [**Biogo**](http://github.com/biogo) if you are looking for a more mature bioinformatics package. (although they don't have a semiglobal alignment algorithm)
 
 ## Components so far:
 
