@@ -2,6 +2,7 @@ package gobioinfo
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
 	"os"
 	"strings"
@@ -35,7 +36,7 @@ func (s *FASTQScanner) Close() {
 }
 
 // NextRead returns the next read from a FASTQScanner
-func (s *FASTQScanner) NextRead() FASTQRead {
+func (s *FASTQScanner) NextRead() (FASTQRead, error) {
 
 	var ln1, ln3 string
 	var ln2, ln4 []rune
@@ -44,27 +45,27 @@ func (s *FASTQScanner) NextRead() FASTQRead {
 	if s.Scanner.Scan() {
 		ln1 = s.Scanner.Text()
 	} else {
-		return FASTQRead{}
+		return FASTQRead{}, errors.New("EOF")
 	}
 	if s.Scanner.Scan() {
 		ln2 = []rune(s.Scanner.Text())
 	} else {
-		return FASTQRead{}
+		return FASTQRead{}, errors.New("EOF")
 	}
 	if s.Scanner.Scan() {
 		ln3 = s.Scanner.Text()
 	} else {
-		return FASTQRead{}
+		return FASTQRead{}, errors.New("EOF")
 	}
 	if s.Scanner.Scan() {
 		ln4 = []rune(s.Scanner.Text())
 	} else {
-		return FASTQRead{}
+		return FASTQRead{}, errors.New("EOF")
 	}
 
 	newRead = NewFASTQRead(ln1, ln2, ln3, ln4)
 
-	return (newRead)
+	return newRead, nil
 
 }
 

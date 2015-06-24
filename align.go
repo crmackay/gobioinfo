@@ -158,8 +158,8 @@ func (query NucleotideSequence) Align(subject NucleotideSequence) PairWiseAlignm
 	lenJ := lenQuery + 1
 
 	const (
-		h             = 100 //gap opening penalty
-		g             = 5   //gap extension penalty
+		h             = 30 //gap opening penalty
+		g             = 5  //gap extension penalty
 		matchScore    = 15
 		mismatchScore = -13
 	)
