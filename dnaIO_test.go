@@ -37,12 +37,14 @@ func TestFASTQReader(t *testing.T) {
 	defer fastqscanner.Close()
 
 	for {
-		myRead := fastqscanner.NextRead()
+		_, err := fastqscanner.NextRead()
+		if err != nil {
+			if err.Error() == "EOF" {
+				break
+			}
+		}
 		//fmt.Println(myRead.Id)
 		//fmt.Println(myRead.Sequence)
-		if myRead.ID == "" {
-			break
-		}
 	}
 }
 

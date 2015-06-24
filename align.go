@@ -41,7 +41,7 @@ read     [...]GTGT-AGTCACTTCCAGCGGTCGTATGCCGTCTTCTGCTTG-end
 type PairWiseAlignment struct {
 	Subject                 NucleotideSequence
 	Query                   NucleotideSequence
-	ExpandedCIGAR           []string
+	ExpandedCIGAR           string
 	SubjectStart            int
 	QueryStart              int
 	SubjectAlignLen         int
@@ -158,10 +158,10 @@ func (query NucleotideSequence) Align(subject NucleotideSequence) PairWiseAlignm
 	lenJ := lenQuery + 1
 
 	const (
-		h             = 30 //gap opening penalty
-		g             = 5  //gap extension penalty
-		matchScore    = 15
-		mismatchScore = -13
+		h             = 6 //gap opening penalty
+		g             = 3 //gap extension penalty
+		matchScore    = 3
+		mismatchScore = -4
 	)
 
 	/* TODO: add visualization of the alignment matrix
@@ -342,12 +342,13 @@ func (query NucleotideSequence) Align(subject NucleotideSequence) PairWiseAlignm
 
 	// create an forward cigar
 
-	var CIGAR []string
+	var CIGAR string
 
-	for i := 0; i < len(revCIGAR); i++ {
+	for i := range revCIGAR {
 		nextLetter := revCIGAR[len(revCIGAR)-1-i]
-		CIGAR = append(CIGAR, nextLetter)
+		CIGAR += nextLetter
 	}
+
 	fmt.Println(CIGAR)
 
 	// TODO: create new alignment object
