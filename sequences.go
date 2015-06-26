@@ -19,9 +19,18 @@ type NucBase uint8
 type NucSeq []NucBase
 */
 
-// NucleotideSequence is a wrapper around a slice of runes repreceting
+// NucleotideSequence is a wrapper around a slice of runes representing
 // a nucleotide sequence
 type NucleotideSequence []rune
+
+func NewNucleotideSequence(s string) NucleotideSequence {
+	seq := NucleotideSequence{}
+	for i, base := range s {
+		seq[i] = rune(base)
+	}
+
+	return seq
+}
 
 // DNASequence is a struct representing a dna sequence, it has a sequence attribute
 // and can have more attribites later, like species, source etc.

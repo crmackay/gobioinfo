@@ -41,7 +41,7 @@ GCTAGGGAGGACGATGCGGCTAAGTGGTTGGAACCCGATTGCCTCTCTGGAGCGTGTCAGTCACTTCCAGCGGGTGTCAG
 	//																									                                                             GTGTCAGTCACTTCCAGCGGTCGTATGCCGTCTTCTGCTTG
 	scanner := FASTQScanner{Scanner: bufio.NewScanner(rawTestData), File: nil}
 
-	testReads := make([]FASTQRead, 0)
+	var testReads []FASTQRead
 	for {
 		newRead, err := scanner.NextRead()
 		if err != nil {
@@ -61,7 +61,7 @@ GCTAGGGAGGACGATGCGGCTAAGTGGTTGGAACCCGATTGCCTCTCTGGAGCGTGTCAGTCACTTCCAGCGGGTGTCAG
 		expectedQueryStart int
 	}
 
-	testSuite := make([]testGroup, 0)
+	var testSuite []testGroup
 
 	expectedCIGARS := []string{
 		"mmmmmmmmmmmmmmmmmmmmxmmmmmmmmmm",
@@ -70,6 +70,7 @@ GCTAGGGAGGACGATGCGGCTAAGTGGTTGGAACCCGATTGCCTCTCTGGAGCGTGTCAGTCACTTCCAGCGGGTGTCAG
 		"mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm",
 		"mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm",
 		"mmmmmmmmmmmmmmmmmmmmmmmmmmm",
+		"mmmmmxmmmxxmmxmxximmjxxxxmmmmmmmmmmmmmmmmm",
 	}
 
 	for i, elem := range testReads {
@@ -84,8 +85,11 @@ GCTAGGGAGGACGATGCGGCTAAGTGGTTGGAACCCGATTGCCTCTCTGGAGCGTGTCAGTCACTTCCAGCGGGTGTCAG
 	for _, elem := range testSuite {
 		if elem.expectedCIGAR != elem.alignment.ExpandedCIGAR {
 			t.Error(
-				"expected: ", elem.expectedCIGAR, "\n",
-				"but got: ", elem.alignment.ExpandedCIGAR, "\n",
+				"expected: \t",
+				elem.expectedCIGAR,
+				"\nbut got: \t\t",
+				elem.alignment.ExpandedCIGAR,
+				"\n",
 			)
 		}
 	}
