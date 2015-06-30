@@ -2,9 +2,12 @@ package gobioinfo
 
 import (
 	"bufio"
+	"compress/gzip"
 	"errors"
 	"fmt"
+	"io"
 	"os"
+	"path/filepath"
 	"strings"
 )
 
@@ -19,12 +22,20 @@ type FASTQScanner struct {
 func NewFASTQScanner(filePath string) FASTQScanner {
 
 	file, err := os.Open(filePath)
-
 	if err != nil {
 		fmt.Println("error opening file= ", err)
 		os.Exit(1)
 	}
-	fastqscanner := FASTQScanner{Scanner: bufio.NewScanner(file), File: file}
+
+	var reader io.Reader
+
+	if filepath.Ext(filePath) == ".gz" {
+		reader, err = gzip.NewReader(file)
+	} else {
+		reader = file
+	}
+
+	fastqscanner := FASTQScanner{Scanner: bufio.NewScanner(reader), File: file}
 	return (fastqscanner)
 }
 
