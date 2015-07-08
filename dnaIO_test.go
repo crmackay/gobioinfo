@@ -1,6 +1,9 @@
 package gobioinfo
 
 import (
+	"bufio"
+	"bytes"
+	"compress/gzip"
 	"fmt"
 	"os/user"
 	"testing"
@@ -22,30 +25,30 @@ func TestFASTQScannerNextRead(t *testing.T) {
 
 func TestFASTQReader(t *testing.T) {
 
-	// read FASTQ file
+	// read gzipped file
+	testGZip := bytes.NewBuffer(gzipRawData)
+	reader, _ := gzip.NewReader(testGZip)
 
-	// test FASTQ read values
-
-	// t.Error("this is a test error")
-
-	usr, _ := user.Current()
-	homeDir := usr.HomeDir
-	testPath := homeDir + "/Desktop/coding/golang/src/github.com/crmackay/gobioinfo/testData/sample_50.fastq"
-
-	fastqscanner := NewFASTQScanner(testPath)
+	fastqscanner := FASTQScanner{Scanner: bufio.NewScanner(reader), File: nil}
 
 	defer fastqscanner.Close()
 
 	for {
-		_, err := fastqscanner.NextRead()
+		myRead, err := fastqscanner.NextRead()
 		if err != nil {
 			if err.Error() == "EOF" {
 				break
 			}
 		}
-		//fmt.Println(myRead.Id)
-		//fmt.Println(myRead.Sequence)
+		fmt.Println(myRead.ID)
+		fmt.Println(myRead.Sequence)
 	}
+
+	// read unzipped file
+
+	// compare both
+
+	// if any errors fail test
 }
 
 func TestFASTQWriter(t *testing.T) {
@@ -91,6 +94,7 @@ func TestFASTQWriter(t *testing.T) {
 // func (w *FASTAWriter) Write(r FASTQRead) error {}
 // func (w *FASTAWriter) Close() {}
 
+// this is a 10 read FASTQ file that has been gzipped and then represented as a slice of bytes
 var gzipRawData = []byte{
 	0x1f, 0x8b, 0x08, 0x08, 0xe2, 0xf4, 0xec, 0x53, 0x00, 0x03, 0x73, 0x61, 0x6d, 0x70, 0x6c, 0x65,
 	0x5f, 0x31, 0x30, 0x2e, 0x66, 0x61, 0x73, 0x74, 0x71, 0x00, 0x9d, 0x55, 0xcb, 0x72, 0xa4, 0x38,
