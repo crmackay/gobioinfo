@@ -44,8 +44,8 @@ type PairWiseAlignment struct {
 	ExpandedCIGAR           string
 	SubjectStart            int
 	QueryStart              int
-	SubjectAlignLen         int
 	QueryAlignLen           int
+	SubjectAlignLen         int
 	GappedSubject           string
 	GappedQuery             string
 	AlignmentRepresentation string
@@ -368,6 +368,14 @@ func (query NucleotideSequence) Align(subject NucleotideSequence) PairWiseAlignm
 	fmt.Println(newAlignment.GappedQuery)
 	fmt.Println(newAlignment.AlignmentRepresentation)
 	fmt.Println(newAlignment.GappedSubject)
+	fmt.Println(string(newAlignment.Subject))
+	fmt.Println("Subject start: ", newAlignment.SubjectStart)
+	fmt.Println("Subject align len: ", newAlignment.SubjectAlignLen)
+	fmt.Println("Query: ", string(newAlignment.Query))
+	fmt.Println("Quert start: ", newAlignment.QueryStart)
+	fmt.Println("Query align len: ", newAlignment.QueryAlignLen)
+	fmt.Println("test Subject: ", string(newAlignment.Subject[newAlignment.SubjectStart:newAlignment.SubjectStart+newAlignment.SubjectAlignLen]))
+	fmt.Println("test Query:   ", string(newAlignment.Query[newAlignment.QueryStart:newAlignment.QueryStart+newAlignment.QueryAlignLen]))
 
 	// TODO: create print method for alignment object
 
