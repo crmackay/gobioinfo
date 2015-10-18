@@ -12,7 +12,7 @@ lengths, or sequences which might only partially overlap.
 package gobioinfo
 
 import (
-	"fmt"
+//"fmt"
 )
 
 /*
@@ -161,7 +161,7 @@ func (q NucleotideSequence) SG3pAlign(s NucleotideSequence) PairWiseAlignment {
 // Align applies a semi-global alignment algorithm to the query and subject sequences
 func (query NucleotideSequence) sGAlign(subject NucleotideSequence, end string) PairWiseAlignment {
 
-	fmt.Println(string(query))
+	//fmt.Println(string(query))
 	// get the length of the input strings
 	lenSubject := len(subject)
 
@@ -396,9 +396,9 @@ func (query NucleotideSequence) sGAlign(subject NucleotideSequence, end string) 
 		}
 	}
 
-	//	fmt.Println("max score: ", maxScore)
-	fmt.Println("maxPosition.i: ", maxPosition.i)
-	fmt.Println("maxPosition.j: ", maxPosition.j)
+	// fmt.Println("max score: ", maxScore)
+	// fmt.Println("maxPosition.i: ", maxPosition.i)
+	// fmt.Println("maxPosition.j: ", maxPosition.j)
 
 	//fmt.Println(string("max position"), maxPosition.i, maxPosition.j)
 
@@ -433,8 +433,8 @@ func (query NucleotideSequence) sGAlign(subject NucleotideSequence, end string) 
 	} else {
 		revCIGAR = nil
 	}
-	//fmt.Println("current position", currentPosition)
-	fmt.Println(revCIGAR)
+	// fmt.Println("current position", currentPosition)
+	// fmt.Println(revCIGAR)
 
 	// create an forward cigar
 
@@ -447,10 +447,10 @@ func (query NucleotideSequence) sGAlign(subject NucleotideSequence, end string) 
 		}
 	} else {
 		CIGAR = ""
-		fmt.Println("here")
+		// fmt.Println("here")
 	}
 
-	fmt.Println(CIGAR)
+	// fmt.Println(CIGAR)
 
 	// TODO: create new alignment object
 
@@ -474,8 +474,8 @@ func (query NucleotideSequence) sGAlign(subject NucleotideSequence, end string) 
 		}
 	}
 
-	fmt.Println(subjectStart)
-	fmt.Println(queryStart)
+	// fmt.Println(subjectStart)
+	// fmt.Println(queryStart)
 
 	if currentPosition.i != 0 || currentPosition.j != 0 {
 		newAlignment = PairWiseAlignment{
@@ -495,15 +495,15 @@ func (query NucleotideSequence) sGAlign(subject NucleotideSequence, end string) 
 
 	newAlignment = alignmentRepr(newAlignment)
 
-	fmt.Println(newAlignment.GappedQuery)
-	fmt.Println(newAlignment.AlignmentRepresentation)
-	fmt.Println(newAlignment.GappedSubject)
-	fmt.Println(string(newAlignment.Subject))
-	fmt.Println("Subject start: ", newAlignment.SubjectStart)
-	fmt.Println("Subject align len: ", newAlignment.SubjectAlignLen)
-	fmt.Println("Query: ", string(newAlignment.Query))
-	fmt.Println("Quert start: ", newAlignment.QueryStart)
-	fmt.Println("Query align len: ", newAlignment.QueryAlignLen)
+	// fmt.Println(newAlignment.GappedQuery)
+	// fmt.Println(newAlignment.AlignmentRepresentation)
+	// fmt.Println(newAlignment.GappedSubject)
+	// fmt.Println(string(newAlignment.Subject))
+	// fmt.Println("Subject start: ", newAlignment.SubjectStart)
+	// fmt.Println("Subject align len: ", newAlignment.SubjectAlignLen)
+	// fmt.Println("Query: ", string(newAlignment.Query))
+	// fmt.Println("Quert start: ", newAlignment.QueryStart)
+	// fmt.Println("Query align len: ", newAlignment.QueryAlignLen)
 	// TODO: create print method for alignment object
 
 	// TODO: resolve same scores on traceback

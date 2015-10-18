@@ -110,7 +110,6 @@ func (w *FASTQWriter) Write(r FASTQRead) error {
 	//fmt.Println(for_writing)
 
 	var err error
-	var i int
 
 	//check if there are enough bytes lefts in the writer buffer
 	if w.Writer.Available() < len(forWriting) {
@@ -122,8 +121,8 @@ func (w *FASTQWriter) Write(r FASTQRead) error {
 		_, err = w.Writer.WriteString(forWriting)
 	} else {
 		//write to the write buffer
-		i, err = w.Writer.WriteString(forWriting)
-		fmt.Println("return from writestring: ", i)
+		_, err = w.Writer.WriteString(forWriting)
+		// fmt.Println("return from writestring: ", i)
 	}
 	//returns any write error that might have occurred
 	return (err)
