@@ -102,7 +102,9 @@ func alignmentRepr(alignment PairWiseAlignment) PairWiseAlignment {
 	var subjectRepr string
 	var queryRepr string
 	var alignmentRepr string
-
+	if CIGAR == "" {
+		return (alignment)
+	}
 	for i := 0; i < len(CIGAR); i++ {
 		subjectPosition := subjectStart + i - dels
 		queryPosition := queryStart + i - ins
@@ -145,9 +147,21 @@ func alignmentRepr(alignment PairWiseAlignment) PairWiseAlignment {
 
 // alignment algorithm
 
-// Align applies a semi-global alignment algorithm to the query and subject sequences
-func (query NucleotideSequence) Align(subject NucleotideSequence) PairWiseAlignment {
+// SG5pAlign aligns...
+func (q NucleotideSequence) SG5pAlign(s NucleotideSequence) PairWiseAlignment {
+	return (q.sGAlign(s, "five"))
 
+}
+
+// SG3pAlign aligns...
+func (q NucleotideSequence) SG3pAlign(s NucleotideSequence) PairWiseAlignment {
+	return (q.sGAlign(s, "three"))
+}
+
+// Align applies a semi-global alignment algorithm to the query and subject sequences
+func (query NucleotideSequence) sGAlign(subject NucleotideSequence, end string) PairWiseAlignment {
+
+	fmt.Println(string(query))
 	// get the length of the input strings
 	lenSubject := len(subject)
 
@@ -242,10 +256,9 @@ func (query NucleotideSequence) Align(subject NucleotideSequence) PairWiseAlignm
 
 	for j := range H {
 		for i := range H[j] {
-			if i != 0 && j != 0 {
-
+			switch {
+			case i != 0 && j != 0:
 				//fill in I
-
 				I[j][i] = maxInt([]int{
 					H[j][i-1] - h,
 					I[j][i-1] - g,
@@ -267,10 +280,63 @@ func (query NucleotideSequence) Align(subject NucleotideSequence) PairWiseAlignm
 				D[j][i] = bestMove.Origin
 				//fmt.Println(bestMove.Score, bestMove.Origin)
 
-			} else {
-
+			case i == 0 && j == 0:
 				H[j][i] = 0
-				D[j][i] = "-"
+				I[j][i] = 0
+				J[i][j] = 0
+				D[i][j] = "-"
+
+			case i == 0 && j != 0:
+				switch {
+				case end == "three":
+					H[j][i] = 0
+					I[j][i] = 0
+					J[j][i] = 0
+					D[j][i] = "-"
+				case end == "five":
+					I[j][i] = 0
+
+					// fill in J
+					J[j][i] = maxInt([]int{
+						H[j-1][i] - h,
+						J[j-1][i] - g,
+					})
+
+					// fill in H and D
+					bestMove := max([]matrixMovement{
+						// matrixMovement{I[j][i], "i"},
+						matrixMovement{J[j][i], "j"},
+					})
+					H[j][i] = bestMove.Score
+					D[j][i] = bestMove.Origin
+				}
+
+			case i != 0 && j == 0:
+				switch {
+				case end == "three":
+
+					I[j][i] = maxInt([]int{
+						H[j][i-1] - h,
+						I[j][i-1] - g,
+					})
+
+					// fill in J
+					J[j][i] = 0
+
+					// fill in H and D
+					bestMove := max([]matrixMovement{
+						matrixMovement{I[j][i], "i"},
+						// matrixMovement{J[j][i], "j"},
+					})
+					H[j][i] = bestMove.Score
+					D[j][i] = bestMove.Origin
+
+				case end == "five":
+					H[j][i] = 0
+					I[j][i] = 0
+					J[j][i] = 0
+					D[j][i] = "-"
+				}
 
 			}
 		}
@@ -285,19 +351,35 @@ func (query NucleotideSequence) Align(subject NucleotideSequence) PairWiseAlignm
 	// create traceback
 
 	//find max score in the last row or column
-	var maxScore int
-	var maxPosition matrixPosition
 
-	for j := 0; j < lenJ; j++ {
-		if H[j][lenI-1] > maxScore {
-			maxScore = H[j][lenI-1]
-			maxPosition.i = lenI - 1
-			maxPosition.j = j
-		}
+	maxScore := H[lenJ-1][lenI-1]
+	maxPosition := matrixPosition{
+		i: lenI - 1,
+		j: lenJ - 1,
 	}
 
-	for i := 0; i < lenI; i++ {
+	// switch {
+	// case end == "three":
+	// 	for i := 0; i < lenI; i++ {
+	// 		if H[lenJ-1][i] > maxScore {
+	// 			maxScore = H[lenJ-1][i]
+	// 			maxPosition.i = i
+	// 			maxPosition.j = lenJ - 1
+	// 		}
+	// 		//	fmt.Println("i: ", i)
+	// 		//	fmt.Println("H[lenJ-1][i]: ", H[lenJ-1][i])
+	// 	}
+	// case end == "five":
+	// 	for j := 0; j < lenJ; j++ {
+	// 		if H[j][lenI-1] > maxScore {
+	// 			maxScore = H[j][lenI-1]
+	// 			maxPosition.i = lenI - 1
+	// 			maxPosition.j = j
+	// 		}
+	// 	}
+	// }
 
+	for i := 0; i < lenI; i++ {
 		if H[lenJ-1][i] > maxScore {
 			maxScore = H[lenJ-1][i]
 			maxPosition.i = i
@@ -306,11 +388,19 @@ func (query NucleotideSequence) Align(subject NucleotideSequence) PairWiseAlignm
 		//	fmt.Println("i: ", i)
 		//	fmt.Println("H[lenJ-1][i]: ", H[lenJ-1][i])
 	}
-	//	fmt.Println("max score: ", maxScore)
-	//	fmt.Println("maxPosition.i: ", maxPosition.i)
-	//	fmt.Println("maxPosition.j: ", maxPosition.j)
+	for j := 0; j < lenJ; j++ {
+		if H[j][lenI-1] > maxScore {
+			maxScore = H[j][lenI-1]
+			maxPosition.i = lenI - 1
+			maxPosition.j = j
+		}
+	}
 
-	//fmt.Println(string("max position"),maxPosition.i, maxPosition.j)
+	//	fmt.Println("max score: ", maxScore)
+	fmt.Println("maxPosition.i: ", maxPosition.i)
+	fmt.Println("maxPosition.j: ", maxPosition.j)
+
+	//fmt.Println(string("max position"), maxPosition.i, maxPosition.j)
 
 	//build reverse cigar string
 
@@ -322,31 +412,42 @@ func (query NucleotideSequence) Align(subject NucleotideSequence) PairWiseAlignm
 	completedTraceback := false
 
 	currentPosition = maxPosition
+	var nextPosition matrixPosition
 
-	for completedTraceback == false {
+	// check to make sure you don't start a traceback at a i=0 or j=0 position
+	// (which arises when there essentially is no alignment and the max alignment score is zero)
+	if currentPosition.i != 0 && currentPosition.j != 0 {
+		for completedTraceback == false {
 
-		currentVector := D[currentPosition.j][currentPosition.i]
+			currentVector := D[currentPosition.j][currentPosition.i]
+			revCIGAR = append(revCIGAR, currentVector)
+			nextPosition = traceback(currentPosition)
 
-		revCIGAR = append(revCIGAR, currentVector)
-
-		nextPosition := traceback(currentPosition)
-
-		if nextPosition.i == 0 || nextPosition.j == 0 {
-			completedTraceback = true
-		} else {
-			currentPosition = nextPosition
+			// check to see if we have reach the top or left of the matrix
+			if nextPosition.i == 0 || nextPosition.j == 0 {
+				completedTraceback = true
+			} else {
+				currentPosition = nextPosition
+			}
 		}
+	} else {
+		revCIGAR = nil
 	}
 	//fmt.Println("current position", currentPosition)
-	//fmt.Println(revCIGAR)
+	fmt.Println(revCIGAR)
 
 	// create an forward cigar
 
 	var CIGAR string
 
-	for i := range revCIGAR {
-		nextLetter := revCIGAR[len(revCIGAR)-1-i]
-		CIGAR += nextLetter
+	if revCIGAR != nil {
+		for i := range revCIGAR {
+			nextLetter := revCIGAR[len(revCIGAR)-1-i]
+			CIGAR += nextLetter
+		}
+	} else {
+		CIGAR = ""
+		fmt.Println("here")
 	}
 
 	fmt.Println(CIGAR)
@@ -355,14 +456,43 @@ func (query NucleotideSequence) Align(subject NucleotideSequence) PairWiseAlignm
 
 	// cigar start = currentPosition
 	// cigar end = maxPosition
+	var newAlignment PairWiseAlignment
 
-	newAlignment := PairWiseAlignment{
-		Subject:       subject,
-		Query:         query,
-		ExpandedCIGAR: CIGAR,
-		SubjectStart:  currentPosition.i - 1,
-		QueryStart:    currentPosition.j - 1,
+	subjectStart := currentPosition.i - 1
+
+	queryStart := currentPosition.j - 1
+
+	if CIGAR != "" {
+		switch {
+		case string(CIGAR[0]) == "i":
+			subjectStart = currentPosition.i - 1
+			queryStart = currentPosition.j
+		case string(CIGAR[0]) == "j":
+			subjectStart = currentPosition.i
+			queryStart = currentPosition.j - 1
+
+		}
 	}
+
+	fmt.Println(subjectStart)
+	fmt.Println(queryStart)
+
+	if currentPosition.i != 0 || currentPosition.j != 0 {
+		newAlignment = PairWiseAlignment{
+			Subject:       subject,
+			Query:         query,
+			ExpandedCIGAR: CIGAR,
+			SubjectStart:  subjectStart,
+			QueryStart:    queryStart,
+		}
+	} else {
+		newAlignment = PairWiseAlignment{
+			Subject:       subject,
+			Query:         query,
+			ExpandedCIGAR: CIGAR,
+		}
+	}
+
 	newAlignment = alignmentRepr(newAlignment)
 
 	fmt.Println(newAlignment.GappedQuery)
@@ -374,9 +504,6 @@ func (query NucleotideSequence) Align(subject NucleotideSequence) PairWiseAlignm
 	fmt.Println("Query: ", string(newAlignment.Query))
 	fmt.Println("Quert start: ", newAlignment.QueryStart)
 	fmt.Println("Query align len: ", newAlignment.QueryAlignLen)
-	fmt.Println("test Subject: ", string(newAlignment.Subject[newAlignment.SubjectStart:newAlignment.SubjectStart+newAlignment.SubjectAlignLen]))
-	fmt.Println("test Query:   ", string(newAlignment.Query[newAlignment.QueryStart:newAlignment.QueryStart+newAlignment.QueryAlignLen]))
-
 	// TODO: create print method for alignment object
 
 	// TODO: resolve same scores on traceback
