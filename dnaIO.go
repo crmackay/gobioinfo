@@ -105,7 +105,7 @@ func NewFASTQWriter(filePath string) FASTQWriter {
 func (w *FASTQWriter) Write(r FASTQRead) error {
 
 	//compose FASTQRead struct into the proper format
-	forWriting := strings.Join([]string{"@" + r.ID, string(r.Sequence), r.Misc,
+	forWriting := strings.Join([]string{r.ID, string(r.Sequence), r.Misc,
 		string(r.PHRED.Encoded), ""}, "\n")
 	//fmt.Println(for_writing)
 
