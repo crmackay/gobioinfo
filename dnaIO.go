@@ -2,9 +2,12 @@ package gobioinfo
 
 import (
 	"bufio"
+	"compress/gzip"
 	"errors"
 	"fmt"
+	"io"
 	"os"
+	"path/filepath"
 	"strings"
 )
 
@@ -19,12 +22,20 @@ type FASTQScanner struct {
 func NewFASTQScanner(filePath string) FASTQScanner {
 
 	file, err := os.Open(filePath)
-
 	if err != nil {
 		fmt.Println("error opening file= ", err)
 		os.Exit(1)
 	}
-	fastqscanner := FASTQScanner{Scanner: bufio.NewScanner(file), File: file}
+
+	var reader io.Reader
+
+	if filepath.Ext(filePath) == ".gz" {
+		reader, err = gzip.NewReader(file)
+	} else {
+		reader = file
+	}
+
+	fastqscanner := FASTQScanner{Scanner: bufio.NewScanner(reader), File: file}
 	return (fastqscanner)
 }
 
@@ -94,12 +105,11 @@ func NewFASTQWriter(filePath string) FASTQWriter {
 func (w *FASTQWriter) Write(r FASTQRead) error {
 
 	//compose FASTQRead struct into the proper format
-	forWriting := strings.Join([]string{"@" + r.ID, string(r.Sequence), r.Misc,
+	forWriting := strings.Join([]string{r.ID, string(r.Sequence), r.Misc,
 		string(r.PHRED.Encoded), ""}, "\n")
 	//fmt.Println(for_writing)
 
 	var err error
-	var i int
 
 	//check if there are enough bytes lefts in the writer buffer
 	if w.Writer.Available() < len(forWriting) {
@@ -111,8 +121,8 @@ func (w *FASTQWriter) Write(r FASTQRead) error {
 		_, err = w.Writer.WriteString(forWriting)
 	} else {
 		//write to the write buffer
-		i, err = w.Writer.WriteString(forWriting)
-		fmt.Println("return from writestring: ", i)
+		_, err = w.Writer.WriteString(forWriting)
+		// fmt.Println("return from writestring: ", i)
 	}
 	//returns any write error that might have occurred
 	return (err)
