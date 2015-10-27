@@ -7,13 +7,34 @@ Together these two changes to a standard *local* alignment algorithm
 (aka Smith-Waterman) make it ideal for aligning sequences of differing
 lengths, or sequences which might only partially overlap.
 
+Aside from a generic semi-global alignment algorithm, there are also two usage specific
+implementations that allow gap penelties at the 5' end of either the query string or the subject,
+which is useful when looking for a substring that you know should be at one end or another of the
+subject string.
+
+	example:
+		3' Linker : GTGTCAGCACA
+		Subject: CACATACACTAAGAAGGTCCTGGACGCGTGTAGTCAC
+
+		the 3'-specific adjustment would favor this alignment:
+
+									   GTGTCAGCACA
+									   ||||
+			CACATACACTAAGAAGGTCCTGGACGCGTGT
+
+		over this alignment:
+
+			GTGTCAGCACA
+		           ||||
+		   		   CACATACACTAAGAAGGTCCTGGACGCGTGT
+
+
+
 */
 
 package gobioinfo
 
-import (
 //"fmt"
-)
 
 /*
 
@@ -37,6 +58,23 @@ read     [...]GTGT-AGTCACTTCCAGCGGTCGTATGCCGTCTTCTGCTTG-end
 
 */
 
+const (
+	ntA = 65 //
+	ntC = 67 //
+	ntG = 71 //
+	ntT = 84 //
+	ntN = 78 // nucleotide N as represented by the unicode/ascii code point for "N"
+)
+
+const (
+	match    = 1 << iota // m
+	mismatch             // x
+	neutral              // n
+	insI                 // i
+	insJ                 // j
+	gap                  // "-"
+)
+
 // PairWiseAlignment creates an pairwise alignment structure
 type PairWiseAlignment struct {
 	Subject                 NucleotideSequence
@@ -51,9 +89,16 @@ type PairWiseAlignment struct {
 	AlignmentRepresentation string
 }
 
+// PairWiseRepresentation is a convenience struct for printing and displaying a pairwise alignment
+type PairWiseRepresentation struct {
+	Subject string
+	Query   string
+	Matches string
+}
+
 type matrixMovement struct {
 	Score  int
-	Origin string
+	Origin int
 }
 
 type matrixPosition struct {
@@ -108,25 +153,25 @@ func alignmentRepr(alignment PairWiseAlignment) PairWiseAlignment {
 	for i := 0; i < len(CIGAR); i++ {
 		subjectPosition := subjectStart + i - dels
 		queryPosition := queryStart + i - ins
-		switch {
-		case string(CIGAR[i]) == "m":
+		switch string(CIGAR[i]) {
+		case "m":
 			subjectRepr = subjectRepr + string(subject[subjectPosition])
 			queryRepr = queryRepr + string(query[queryPosition])
 			alignmentRepr = alignmentRepr + "|"
-		case string(CIGAR[i]) == "x":
+		case "x":
 			subjectRepr = subjectRepr + string(subject[subjectPosition])
 			queryRepr = queryRepr + string(query[queryPosition])
 			alignmentRepr = alignmentRepr + " "
-		case string(CIGAR[i]) == "n":
+		case "n":
 			subjectRepr = subjectRepr + string(subject[subjectPosition])
 			queryRepr = queryRepr + string(query[queryPosition])
 			alignmentRepr = alignmentRepr + " "
-		case string(CIGAR[i]) == "i":
+		case "i":
 			subjectRepr = subjectRepr + string(subject[subjectPosition])
 			queryRepr = queryRepr + "-"
 			alignmentRepr = alignmentRepr + " "
 			ins = ins + 1
-		case string(CIGAR[i]) == "j":
+		case "j":
 			subjectRepr = subjectRepr + "-"
 			queryRepr = queryRepr + string(query[queryPosition])
 			alignmentRepr = alignmentRepr + " "
@@ -142,7 +187,6 @@ func alignmentRepr(alignment PairWiseAlignment) PairWiseAlignment {
 	alignment.QueryAlignLen = len(CIGAR) - ins
 
 	return (alignment)
-
 }
 
 // alignment algorithm
@@ -150,7 +194,6 @@ func alignmentRepr(alignment PairWiseAlignment) PairWiseAlignment {
 // SG5pAlign aligns...
 func (q NucleotideSequence) SG5pAlign(s NucleotideSequence) PairWiseAlignment {
 	return (q.sGAlign(s, "five"))
-
 }
 
 // SG3pAlign aligns...
@@ -159,17 +202,16 @@ func (q NucleotideSequence) SG3pAlign(s NucleotideSequence) PairWiseAlignment {
 }
 
 // Align applies a semi-global alignment algorithm to the query and subject sequences
-func (query NucleotideSequence) sGAlign(subject NucleotideSequence, end string) PairWiseAlignment {
+func (q NucleotideSequence) sGAlign(s NucleotideSequence, end string) PairWiseAlignment {
 
-	//fmt.Println(string(query))
 	// get the length of the input strings
-	lenSubject := len(subject)
+	lenS := len(s)
 
-	lenI := lenSubject + 1
+	lenI := lenS + 1
 
-	lenQuery := len(query)
+	lenQ := len(q)
 
-	lenJ := lenQuery + 1
+	lenJ := lenQ + 1
 
 	const (
 		h             = 6 //gap opening penalty
@@ -178,49 +220,51 @@ func (query NucleotideSequence) sGAlign(subject NucleotideSequence, end string) 
 		mismatchScore = -4
 	)
 
-	/* TODO: add visualization of the alignment matrix
+	// TODO: add visualization of the alignment matrix
 
-	   subjectString
+	//   subjectString
 
+	//TODO: optimization - use a matrix (github.com/gonum/matrix/mat64) instead of a [][]int
+	// 	this removes half off all the matric/array lookups
 
-	*/
-
-	// create matrices (j dimension = position along query)
-
+	// set up matrices: H is the match matrix, I is the matrix of gaps in the *i* dimentions (eg
+	// along the subject), J is the matric for gaps in the *j* dimension (eg along the query), and
+	// D is the matrix of which direction (vector) was chosen to fill the H matrix.
+	//
+	// create the outer arrays (j dimension = position along query)
 	H := make([][]int, lenJ)
 	I := make([][]int, lenJ)
 	J := make([][]int, lenJ)
-	D := make([][]string, lenJ)
+	D := make([][]int, lenJ)
 
 	// create the inner arrays (i dimension = position along subject)
-
 	for index := range H {
-
 		H[index] = make([]int, lenI)
 		J[index] = make([]int, lenI)
 		I[index] = make([]int, lenI)
-		D[index] = make([]string, lenI)
-
+		D[index] = make([]int, lenI)
 	}
 
-	match := func(i int, j int) matrixMovement {
+	//TODO:optimization , remove all of the casting here, and do comparisons against constants
+	matcher := func(i int, j int) matrixMovement {
 
 		var returnValue matrixMovement
 		switch {
-		case string(subject[i-1]) == string(query[j-1]):
-			/*if the position is a match*/
-			returnValue.Score = H[j-1][i-1] + matchScore
-			returnValue.Origin = "m"
 
-		case string(query[j-1]) == "N":
-			/*if the base is undefined treat is a neutral*/
+		case s[i-1] == q[j-1]:
+			// if the position is a match
+			returnValue.Score = H[j-1][i-1] + matchScore
+			returnValue.Origin = match
+
+		case q[j-1] == ntN:
+			// if the base is undefined treat it is a neutral
 			returnValue.Score = H[j-1][i-1]
-			returnValue.Origin = "n"
+			returnValue.Origin = neutral
 
 		default:
-			/*otherwise it is a mismatch*/
+			// otherwise it is a mismatch
 			returnValue.Score = H[j-1][i-1] + mismatchScore
-			returnValue.Origin = "x"
+			returnValue.Origin = mismatch
 		}
 		return (returnValue)
 	}
@@ -229,27 +273,27 @@ func (query NucleotideSequence) sGAlign(subject NucleotideSequence, end string) 
 		currentVector := D[start.j][start.i]
 		var nextI int
 		var nextJ int
-		switch {
-		case string(currentVector) == "m":
+		switch currentVector {
+		case match:
 			nextI = start.i - 1
 			nextJ = start.j - 1
-		case string(currentVector) == "x":
+		case mismatch:
 			nextI = start.i - 1
 			nextJ = start.j - 1
-		case string(currentVector) == "n":
+		case neutral:
 			nextI = start.i - 1
 			nextJ = start.j - 1
-		case string(currentVector) == "i":
+		case insI:
 			nextI = start.i - 1
 			nextJ = start.j
-		case string(currentVector) == "j":
+		case insJ:
 			nextI = start.i
 			nextJ = start.j - 1
 		}
 
-		nextPosition := matrixPosition{i: nextI, j: nextJ}
+		nextPos := matrixPosition{i: nextI, j: nextJ}
 
-		return (nextPosition)
+		return (nextPos)
 	}
 
 	// fill matrices
@@ -258,6 +302,8 @@ func (query NucleotideSequence) sGAlign(subject NucleotideSequence, end string) 
 		for i := range H[j] {
 			switch {
 			case i != 0 && j != 0:
+				// if we are not in the first column or first row
+
 				//fill in I
 				I[j][i] = maxInt([]int{
 					H[j][i-1] - h,
@@ -272,28 +318,34 @@ func (query NucleotideSequence) sGAlign(subject NucleotideSequence, end string) 
 
 				// fill in H and D
 				bestMove := max([]matrixMovement{
-					match(i, j),
-					matrixMovement{I[j][i], "i"},
-					matrixMovement{J[j][i], "j"},
+					matcher(i, j),
+					matrixMovement{I[j][i], insI},
+					matrixMovement{J[j][i], insJ},
 				})
 				H[j][i] = bestMove.Score
 				D[j][i] = bestMove.Origin
 				//fmt.Println(bestMove.Score, bestMove.Origin)
 
 			case i == 0 && j == 0:
+				// if we are in the first position (0,0)
 				H[j][i] = 0
 				I[j][i] = 0
 				J[i][j] = 0
-				D[i][j] = "-"
+				D[i][j] = gap
 
 			case i == 0 && j != 0:
+				// if we are in the first column
 				switch {
 				case end == "three":
+					// if we are conducting a three-prime bias'ed semi-global alignment we will
+					// put all zeros
 					H[j][i] = 0
 					I[j][i] = 0
 					J[j][i] = 0
-					D[j][i] = "-"
+					D[j][i] = gap
 				case end == "five":
+					// if we are conducting a five-prim bias'ed semi-global alignment we will
+					// fill in the insertions along J matrix, and the H and D matrices accordingly
 					I[j][i] = 0
 
 					// fill in J
@@ -305,7 +357,7 @@ func (query NucleotideSequence) sGAlign(subject NucleotideSequence, end string) 
 					// fill in H and D
 					bestMove := max([]matrixMovement{
 						// matrixMovement{I[j][i], "i"},
-						matrixMovement{J[j][i], "j"},
+						matrixMovement{J[j][i], insJ},
 					})
 					H[j][i] = bestMove.Score
 					D[j][i] = bestMove.Origin
@@ -325,7 +377,7 @@ func (query NucleotideSequence) sGAlign(subject NucleotideSequence, end string) 
 
 					// fill in H and D
 					bestMove := max([]matrixMovement{
-						matrixMovement{I[j][i], "i"},
+						matrixMovement{I[j][i], insI},
 						// matrixMovement{J[j][i], "j"},
 					})
 					H[j][i] = bestMove.Score
@@ -335,18 +387,13 @@ func (query NucleotideSequence) sGAlign(subject NucleotideSequence, end string) 
 					H[j][i] = 0
 					I[j][i] = 0
 					J[j][i] = 0
-					D[j][i] = "-"
+					D[j][i] = gap
 				}
 
 			}
 		}
 
 	}
-
-	//fmt.Println(H)
-	//fmt.Println(I)
-	//fmt.Println(J)
-	//fmt.Println(D)
 
 	// create traceback
 
@@ -357,27 +404,6 @@ func (query NucleotideSequence) sGAlign(subject NucleotideSequence, end string) 
 		i: lenI - 1,
 		j: lenJ - 1,
 	}
-
-	// switch {
-	// case end == "three":
-	// 	for i := 0; i < lenI; i++ {
-	// 		if H[lenJ-1][i] > maxScore {
-	// 			maxScore = H[lenJ-1][i]
-	// 			maxPosition.i = i
-	// 			maxPosition.j = lenJ - 1
-	// 		}
-	// 		//	fmt.Println("i: ", i)
-	// 		//	fmt.Println("H[lenJ-1][i]: ", H[lenJ-1][i])
-	// 	}
-	// case end == "five":
-	// 	for j := 0; j < lenJ; j++ {
-	// 		if H[j][lenI-1] > maxScore {
-	// 			maxScore = H[j][lenI-1]
-	// 			maxPosition.i = lenI - 1
-	// 			maxPosition.j = j
-	// 		}
-	// 	}
-	// }
 
 	for i := 0; i < lenI; i++ {
 		if H[lenJ-1][i] > maxScore {
@@ -406,8 +432,7 @@ func (query NucleotideSequence) sGAlign(subject NucleotideSequence, end string) 
 
 	var currentPosition matrixPosition
 
-	// TODO: change CIGAR, revCIGAR, and the movement matrix to []rune, and also rename to revCigar
-	var revCIGAR []string
+	var revCIGAR []int
 
 	completedTraceback := false
 
@@ -440,9 +465,25 @@ func (query NucleotideSequence) sGAlign(subject NucleotideSequence, end string) 
 
 	var CIGAR string
 
+	// this check protects against the situation where not alignment takes place
 	if revCIGAR != nil {
 		for i := range revCIGAR {
-			nextLetter := revCIGAR[len(revCIGAR)-1-i]
+			nextVector := revCIGAR[len(revCIGAR)-1-i]
+			var nextLetter string
+			switch {
+			case nextVector == match:
+				nextLetter = "m"
+			case nextVector == mismatch:
+				nextLetter = "x"
+			case nextVector == neutral:
+				nextLetter = "n"
+			case nextVector == insI:
+				nextLetter = "i"
+			case nextVector == insJ:
+				nextLetter = "j"
+			case nextVector == gap:
+				nextLetter = "-"
+			}
 			CIGAR += nextLetter
 		}
 	} else {
@@ -479,31 +520,22 @@ func (query NucleotideSequence) sGAlign(subject NucleotideSequence, end string) 
 
 	if currentPosition.i != 0 || currentPosition.j != 0 {
 		newAlignment = PairWiseAlignment{
-			Subject:       subject,
-			Query:         query,
+			Subject:       s,
+			Query:         q,
 			ExpandedCIGAR: CIGAR,
 			SubjectStart:  subjectStart,
 			QueryStart:    queryStart,
 		}
 	} else {
 		newAlignment = PairWiseAlignment{
-			Subject:       subject,
-			Query:         query,
+			Subject:       s,
+			Query:         q,
 			ExpandedCIGAR: CIGAR,
 		}
 	}
 
 	newAlignment = alignmentRepr(newAlignment)
 
-	// fmt.Println(newAlignment.GappedQuery)
-	// fmt.Println(newAlignment.AlignmentRepresentation)
-	// fmt.Println(newAlignment.GappedSubject)
-	// fmt.Println(string(newAlignment.Subject))
-	// fmt.Println("Subject start: ", newAlignment.SubjectStart)
-	// fmt.Println("Subject align len: ", newAlignment.SubjectAlignLen)
-	// fmt.Println("Query: ", string(newAlignment.Query))
-	// fmt.Println("Quert start: ", newAlignment.QueryStart)
-	// fmt.Println("Query align len: ", newAlignment.QueryAlignLen)
 	// TODO: create print method for alignment object
 
 	// TODO: resolve same scores on traceback
@@ -511,3 +543,12 @@ func (query NucleotideSequence) sGAlign(subject NucleotideSequence, end string) 
 	// return the new alignment object
 	return (newAlignment)
 }
+
+// TODO add a string method for alignment
+
+// func(a *PairWiseAlignment) String {
+//
+// }
+
+// func (a *PairWiseAlignment) GetSubjLen() int {}
+// func (a *PairWiseAlignment) GetSubjLen() int {}

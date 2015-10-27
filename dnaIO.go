@@ -18,8 +18,12 @@ type FASTQScanner struct {
 	*bufio.Scanner
 }
 
-// NewFASTQScanner take a string for a path of a fastq file, and returns a FASTQScanner
-func NewFASTQScanner(filePath string) FASTQScanner {
+func NewFASTQScanner(r io.Reader) FASTQScanner {
+	return FASTQScanner{Scanner: bufio.NewScanner(r), File: nil}
+}
+
+// NewFASTQScannerPath take a string for a path of a fastq file, and returns a FASTQScanner
+func NewFASTQScannerPath(filePath string) FASTQScanner {
 
 	file, err := os.Open(filePath)
 	if err != nil {
@@ -87,9 +91,13 @@ type FASTQWriter struct {
 	*bufio.Writer
 }
 
+func NewFASTQWriter(w io.Writer) FASTQWriter {
+	return FASTQWriter{Writer: bufio.NewWriter(w), File: nil}
+}
+
 //NewFASTQWriter creates a new FASTQWriter instance, which contains the file and writer objects
 //from a file path string
-func NewFASTQWriter(filePath string) FASTQWriter {
+func NewFASTQWriterPath(filePath string) FASTQWriter {
 
 	file, err := os.Create(filePath)
 
@@ -152,7 +160,7 @@ type FASTAWriter struct {
 
 // NewFASTAWriter creates a new FASTAWriter, which is a wrapper around the
 // bufio.Writer it takes a string file path as input
-func NewFASTAWriter(filePath string) FASTAWriter {
+func NewFASTAWriterPath(filePath string) FASTAWriter {
 	file, err := os.Create(filePath)
 
 	if err != nil {

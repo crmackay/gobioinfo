@@ -1,14 +1,10 @@
 package gobioinfo
 
-import (
-//"fmt"
-)
-
 /*
-TODO:
+TODO:optimizations -
 convert from []rune to []base where base is uint8 and holds the utf8codepoints
 codepoints for each sequence...this saves 24 bits (3 bytes) per base pair, and
-likely speeds up comparisons and saves space in memory
+likely speeds up comparisons and saves space in memory <-- is this actually better?
 
 
 // NucleotideSequence is a wrapper around a slice of runes repreceting
@@ -17,12 +13,14 @@ likely speeds up comparisons and saves space in memory
 type NucBase uint8
 
 type NucSeq []NucBase
+
 */
 
 // NucleotideSequence is a wrapper around a slice of runes representing
 // a nucleotide sequence
 type NucleotideSequence []rune
 
+// NewNucleotideSequence takes a string and returns a NucleotideSequence
 func NewNucleotideSequence(s string) NucleotideSequence {
 	seq := NucleotideSequence{}
 	for i, base := range s {
@@ -52,3 +50,47 @@ func NewDNASequence(s string) DNASequence {
 	return d
 
 }
+
+// type Phred int
+//
+// type BaseQual rune
+//
+// type Nuc rune
+//
+// type NucSeq []Nuc
+//
+// func NewNucSeqStr(s string) NucSeq {
+// 	return NucSeq{}
+// }
+//
+// func NewNucSeqBytes(b []byte) NucSeq {
+// 	return NucSeq{}
+// }
+//
+// func NewNucSeqRunes(r []rune) NucSeq {
+// 	return NucSeq{}
+// }
+//
+// type DNA struct {
+// 	NucSeq
+// }
+//
+// type Qual struct {
+// 	Seq      []BaseQual
+// 	Encoding string
+// }
+//
+// func (q *BaseQual) Decode(enc string) (int, error) {
+// 	var p int
+// 	var err error
+// 	switch enc {
+// 	case "phred+33":
+// 		p = int(*q) - 33
+// 		if p > -1 && p > 42 {
+//
+// 		}
+// 	default:
+// 		err = errors.New("unrecognized encoding")
+// 	}
+// 	return p, err
+// }

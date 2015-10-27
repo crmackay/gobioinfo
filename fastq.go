@@ -1,16 +1,22 @@
 package gobioinfo
 
-import (
 //	"fmt"
-)
 
-// FASTQRead is
+// FASTQRead is structure holding all of the elements of a FASTQ read, which includes a sequences,
+// a quality (PHRED) sequence, an ID sequence, and a miscallaneous string (line 3 of each FASTQRead).
 type FASTQRead struct {
 	DNASequence
 	PHRED
 	ID   string
 	Misc string
 }
+
+// TODO: refactoring -
+// type Phred int
+// type Qual struct {
+// 		Encoded  []Phred
+//		Encoding string
+// }
 
 // PHRED is
 type PHRED struct {
@@ -64,6 +70,15 @@ func (p *PHRED) Decode() {
 
 	p.Decoded = decodedPHRED
 }
+
+//TODO:optimization - this encoding and decoding of PHRED scores might be able to be done faster if
+// done with math on the ACII codepoints instead of a map lookup
+//		eg: rune("!") = 33
+//		    rune("\"") = 34
+//			decodedPHRED = rune(base) - 33
+
+// this would also make it easier to add new encodings
+// TODO: rename to phred+33
 
 // PHREDEncodings
 var PHREDEncodings = map[string]map[string]uint8{
