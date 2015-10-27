@@ -1,4 +1,7 @@
 # gobioinfo
+
+[![Build Status](https://travis-ci.org/crmackay/gobioinfo.svg?branch=master)](https://travis-ci.org/crmackay/gobioinfo)
+
 my golang bioinformatics package
 
 version 0.0.-1

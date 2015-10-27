@@ -1,11 +1,11 @@
 package gobioinfo
 
 import (
-	"bufio"
-	"bytes"
-	"compress/gzip"
-	"fmt"
-	"os"
+	// "bufio"
+	// "bytes"
+	// "compress/gzip"
+	// "fmt"
+	// "os"
 	"testing"
 )
 
@@ -23,70 +23,70 @@ func TestFASTQScannerNextRead(t *testing.T) {
 
 //func (w *FASTQWriter) Write(r FASTQRead) error {}
 
-func TestFASTQReader(t *testing.T) {
-
-	// read gzipped file
-	testGZip := bytes.NewBuffer(gzipRawData)
-	reader, _ := gzip.NewReader(testGZip)
-
-	fastqscanner := FASTQScanner{Scanner: bufio.NewScanner(reader), File: nil}
-
-	defer fastqscanner.Close()
-
-	for {
-		myRead, err := fastqscanner.NextRead()
-		if err != nil {
-			if err.Error() == "EOF" {
-				break
-			}
-		}
-		fmt.Println(myRead.ID)
-		fmt.Println(myRead.Sequence)
-	}
-
-	// read unzipped file
-
-	// compare both
-
-	// if any errors fail test
-}
-
-func TestFASTQWriter(t *testing.T) {
-
-	// create FASTQ objects
-
-	// write reads to a file
-
-	// is file the same?
-
-	// delete file
-
-	var err error
-	// TODO this is horrific and needs to be changed to an IOWriter...
-
-	tmpDir := os.TempDir()
-	defer os.Remove(tmpDir + "tmp")
-
-	newRead := FASTQRead{
-		ID: "this is my read name",
-		DNASequence: DNASequence{
-			Sequence: NucleotideSequence([]rune("AATCGATCGATGAGATAGTC")),
-		},
-		Misc:  "+",
-		PHRED: PHRED{Encoded: []rune("*(&*^%^%$^%#Q(*&0(&(*&^&^%^%$"), Decoded: []uint8{10, 20, 18, 10, 16, 25, 35, 35, 40, 35, 35, 36, 27, 32, 34, 23, 34, 23, 23, 34, 4, 5, 45, 45, 5, 45, 45, 5, 45}},
-	}
-
-	w := NewFASTQWriter(tmpDir + "tmp")
-
-	err = w.Write(newRead)
-	err = w.Write(newRead)
-
-	if err != nil {
-		fmt.Println(err)
-	}
-
-	w.Close()
-}
+// func TestFASTQReader(t *testing.T) {
+//
+// 	// read gzipped file
+// 	testGZip := bytes.NewBuffer(gzipRawData)
+// 	reader, _ := gzip.NewReader(testGZip)
+//
+// 	fastqscanner := FASTQScanner{Scanner: bufio.NewScanner(reader), File: nil}
+//
+// 	defer fastqscanner.Close()
+//
+// 	for {
+// 		myRead, err := fastqscanner.NextRead()
+// 		if err != nil {
+// 			if err.Error() == "EOF" {
+// 				break
+// 			}
+// 		}
+// 		fmt.Println(myRead.ID)
+// 		fmt.Println(myRead.Sequence)
+// 	}
+//
+// 	// read unzipped file
+//
+// 	// compare both
+//
+// 	// if any errors fail test
+// }
+//
+// func TestFASTQWriter(t *testing.T) {
+//
+// 	// create FASTQ objects
+//
+// 	// write reads to a file
+//
+// 	// is file the same?
+//
+// 	// delete file
+//
+// 	var err error
+// 	// TODO this is horrific and needs to be changed to an IOWriter...
+//
+// 	tmpDir := os.TempDir()
+// 	defer os.Remove(tmpDir + "tmp")
+//
+// 	newRead := FASTQRead{
+// 		ID: "this is my read name",
+// 		DNASequence: DNASequence{
+// 			Sequence: NucleotideSequence([]rune("AATCGATCGATGAGATAGTC")),
+// 		},
+// 		Misc:  "+",
+// 		PHRED: PHRED{Encoded: []rune("*(&*^%^%$^%#Q(*&0(&(*&^&^%^%$"), Decoded: []uint8{10, 20, 18, 10, 16, 25, 35, 35, 40, 35, 35, 36, 27, 32, 34, 23, 34, 23, 23, 34, 4, 5, 45, 45, 5, 45, 45, 5, 45}},
+// 	}
+//
+// 	w := NewFASTQWriter(tmpDir + "tmp")
+//
+// 	err = w.Write(newRead)
+// 	err = w.Write(newRead)
+//
+// 	if err != nil {
+// 		fmt.Println(err)
+// 	}
+//
+// 	w.Close()
+// }
 
 // func NewFASTAWriter(filePath string) FASTAWriter {}
 // func (w *FASTAWriter) Write(r FASTQRead) error {}
