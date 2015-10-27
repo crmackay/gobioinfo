@@ -6,18 +6,18 @@ import (
 	// "compress/gzip"
 	// "fmt"
 	// "os"
-	"testing"
+	// "testing"
 )
 
 // func NewFASTQScanner(filePath string) FASTQScanner
-func TestNewFASTQScanner(t *testing.T) {
-
-}
+// func TestNewFASTQScanner(t *testing.T) {
+//
+// }
 
 //func (s *FASTQScanner) NextRead() FASTQRead {}
-func TestFASTQScannerNextRead(t *testing.T) {
-
-}
+// func TestFASTQScannerNextRead(t *testing.T) {
+//
+// }
 
 // func NewFASTQWriter(filePath string) FASTQWriter {}
 

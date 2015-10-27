@@ -1,25 +1,25 @@
 package gobioinfo
 
 import (
-	"fmt"
+	// "fmt"
 	//"os/user"
-	"testing"
+	// "testing"
 )
 
 // NewFASTQRead(ln1 string, ln2 []rune, ln3 string, ln4 []rune) (newRead FASTQRead)
-func TestNewFASTQRead(t *testing.T) {
-	fmt.Println("testing NewFASTQRead")
-}
+// func TestNewFASTQRead(t *testing.T) {
+// 	fmt.Println("testing NewFASTQRead")
+// }
 
 //func DecodePHRED(encoded []rune, encoding string) (decoded []uint8)
-func TestDecodePHRED(t *testing.T) {
-	fmt.Println("testing DecodePHRED")
-}
+// func TestDecodePHRED(t *testing.T) {
+// 	fmt.Println("testing DecodePHRED")
+// }
 
 // func (p *PHRED) Decode()
-func TestDecode(t *testing.T) {
-	fmt.Println("testing *PHRED.Decode()")
-}
+// func TestDecode(t *testing.T) {
+// 	fmt.Println("testing *PHRED.Decode()")
+// }
 
 /*
 func TestDecodeQualByteSequence(t *testing.T) {

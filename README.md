@@ -1,6 +1,6 @@
 # gobioinfo
 
-[![Build Status](https://travis-ci.org/crmackay/gobioinfo.svg?branch=master)](https://travis-ci.org/crmackay/gobioinfo)
+[![Build Status](https://travis-ci.org/crmackay/gobioinfo.svg?branch=master)](https://travis-ci.org/crmackay/gobioinfo) [![Coverage Status](https://coveralls.io/repos/crmackay/gobioinfo/badge.svg?branch=master&service=github)](https://coveralls.io/github/crmackay/gobioinfo?branch=master)
 
 my golang bioinformatics package
 
