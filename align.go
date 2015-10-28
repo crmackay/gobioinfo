@@ -8,7 +8,7 @@ Together these two changes to a standard *local* alignment algorithm
 lengths, or sequences which might only partially overlap.
 
 Aside from a generic semi-global alignment algorithm, there are also two usage specific
-implementations that allow gap penelties at the 5' end of either the query string or the subject,
+implementations that allow gap penelties at either the 5'-end or 3'end of the query string,
 which is useful when looking for a substring that you know should be at one end or another of the
 subject string.
 
@@ -16,17 +16,17 @@ subject string.
 		3' Linker : GTGTCAGCACA
 		Subject: CACATACACTAAGAAGGTCCTGGACGCGTGTAGTCAC
 
-		the 3'-specific adjustment would favor this alignment:
+		the 3'-specific adjustment function `SGAlign3p()` would favor this alignment
 
-									   GTGTCAGCACA
-									   ||||
-			CACATACACTAAGAAGGTCCTGGACGCGTGT
+					                           5'-GTGTCAGCACA-3'
+					                              ||||
+					5'-CACATACACTAAGAAGGTCCTGGACGCGTGT-3'
 
 		over this alignment:
 
-			GTGTCAGCACA
-		           ||||
-		   		   CACATACACTAAGAAGGTCCTGGACGCGTGT
+					5'-GTGTCAGCACA-3'
+					          ||||
+					       5'-CACATACACTAAGAAGGTCCTGGACGCGTGT-3'
 
 
 
