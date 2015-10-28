@@ -1,7 +1,6 @@
 package gobioinfo
 
 import (
-	"bufio"
 	"bytes"
 	"fmt"
 	"testing"
@@ -47,7 +46,7 @@ B@CDFFFFHHDDFHHIJJJIIIDGHBFGFHIGHGHG@EGHJHH
 
 	//rawTestData := bytes.NewBufferString("@HWI-ST560:155:C574EACXX:3:1101:2403:1977 1:N:0:\nGCTAGGGAGGACGATGCGGCTAAGTGGTTGGAACCCGATTGCCTCTCTGGAGCGTGTCAGTCACTTCCAGCGGGTGTCAGTCACTTCCAGCGGTCGTATG\n+\n@@@FFFFFHHGHHJJJJJJGIEFHFHGDHGIEGGHIIJIICHHIJHEFHGDDDCDD@BCCDDDDDDA@CDDDDD@><ACDDCCCCCC>CC?>B9@B>833\n")
 	//																									                                                             GTGTCAGTCACTTCCAGCGGTCGTATGCCGTCTTCTGCTTG
-	scanner := FASTQScanner{Scanner: bufio.NewScanner(rawTestData), File: nil}
+	scanner := NewFASTQScanner(rawTestData)
 
 	var testReads []FASTQRead
 	for {
