@@ -7,7 +7,7 @@ codepoints for each sequence...this saves 24 bits (3 bytes) per base pair, and
 likely speeds up comparisons and saves space in memory <-- is this actually better?
 
 
-// NucleotideSequence is a wrapper around a slice of runes repreceting
+// NucSeq is a wrapper around a slice of runes repreceting
 // a nucleotide sequence
 
 type NucBase uint8
@@ -16,13 +16,13 @@ type NucSeq []NucBase
 
 */
 
-// NucleotideSequence is a wrapper around a slice of runes representing
+// NucSeq is a wrapper around a slice of runes representing
 // a nucleotide sequence
-type NucleotideSequence []rune
+type NucSeq []rune
 
-// NewNucleotideSequence takes a string and returns a NucleotideSequence
-func NewNucleotideSequence(s string) NucleotideSequence {
-	seq := NucleotideSequence{}
+// NewNucSeq takes a string and returns a NucSeq
+func NewNucSeq(s string) NucSeq {
+	seq := NucSeq{}
 	for i, base := range s {
 		seq[i] = rune(base)
 	}
@@ -33,7 +33,7 @@ func NewNucleotideSequence(s string) NucleotideSequence {
 // DNASequence is a struct representing a dna sequence, it has a sequence attribute
 // and can have more attribites later, like species, source etc.
 type DNASequence struct {
-	Sequence NucleotideSequence
+	Sequence NucSeq
 }
 
 // FASTARead is

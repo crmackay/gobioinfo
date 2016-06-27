@@ -113,7 +113,7 @@ type FASTAWriter struct {
 	*bufio.Writer
 }
 
-// NewFASTAWriter creates a new FASTAWriter, which is a wrapper around the
+// NewFASTAWriterPath creates a new FASTAWriter, which is a wrapper around the
 // bufio.Writer it takes a string file path as input
 func NewFASTAWriterPath(filePath string) FASTAWriter {
 	file, err := os.Create(filePath)

@@ -32,7 +32,7 @@ func NewFASTQRead(ln1 string, ln2 []rune, ln3 string, ln4 []rune) (newRead FASTQ
 
 	decodedQuality := DecodePHRED(ln4, phredEncoding)
 
-	newSequence := NucleotideSequence(ln2)
+	newSequence := NucSeq(ln2)
 
 	newRead = FASTQRead{
 		ID: ln1,
@@ -80,7 +80,7 @@ func (p *PHRED) Decode() {
 // this would also make it easier to add new encodings
 // TODO: rename to phred+33
 
-// PHREDEncodings
+// PHREDEncodings is
 var PHREDEncodings = map[string]map[string]uint8{
 	"illumina_1.8": {
 		"!":  0,
