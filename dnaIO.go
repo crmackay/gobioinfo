@@ -24,7 +24,7 @@ func NewFASTQScanner(r io.Reader) FASTQScanner {
 func (s *FASTQScanner) NextRead() (FASTQRead, error) {
 
 	var ln1, ln3 string
-	var ln2, ln4 []rune
+	var ln2, ln4 string
 	var newRead FASTQRead
 
 	if s.Scanner.Scan() {
@@ -33,7 +33,7 @@ func (s *FASTQScanner) NextRead() (FASTQRead, error) {
 		return FASTQRead{}, errors.New("EOF")
 	}
 	if s.Scanner.Scan() {
-		ln2 = []rune(s.Scanner.Text())
+		ln2 = s.Scanner.Text()
 	} else {
 		return FASTQRead{}, errors.New("EOF")
 	}
@@ -43,7 +43,7 @@ func (s *FASTQScanner) NextRead() (FASTQRead, error) {
 		return FASTQRead{}, errors.New("EOF")
 	}
 	if s.Scanner.Scan() {
-		ln4 = []rune(s.Scanner.Text())
+		ln4 = s.Scanner.Text()
 	} else {
 		return FASTQRead{}, errors.New("EOF")
 	}
@@ -157,4 +157,5 @@ func (w *FASTAWriter) Close() {
 /*
 TODO: add proper error handling
 TODO: change the filepath parameters to io.Reader, or io.Writer objects?
+TODO: make file reading faster and more direct (remove buffering)
 */

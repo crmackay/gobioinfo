@@ -66,50 +66,46 @@ const (
 
 // matrix directions
 const (
-	match      = 1 << iota // m 00000001
-	mismatch               // x 00000010
-	neutral                // n 00000100
-	openInsI               // i	etc...
-	extendInsI             //
-	openInsJ               // j
-	extendInsJ             //
-	gap                    // "-"
-	edge                   // "$"
+	match      = iota // m 00000001
+	mismatch          // x 00000010
+	neutral           // n 00000100
+	openInsI          // i	etc...
+	extendInsI        //
+	openInsJ          // open a gap in the j direction
+	extendInsJ        // extend a gap in the j direction
+	gap               // "-"
+	edge              // "$"
+	fromI             // movement of a value from the I matrix to the H matrix
+	fromJ             // movement of a value from the J matrix to the H matrix
 )
 
+// the ids for three DP matrixes
 const (
-	matrixH = 1 << iota
+	matrixH = iota
 	matrixI
 	matrixJ
 )
 
-type alignMatrix [][]matrixElem
-
-// String creates a printable representation of the alignment matrix
-func (m alignMatrix) String() string {
-	return ("not sure how to do this yet")
-}
-
 // PWAlignment creates an pairwise alignment structure
 type PWAlignment struct {
-	Subject         NucSeq
-	Query           NucSeq
-	ExpandedCIGAR   string
-	SubjectStart    int
-	QueryStart      int
-	QueryAlignLen   int
-	SubjectAlignLen int
+	Subject       NucSeq
+	Query         NucSeq
+	ExpandedCIGAR string // can be used to get represtantations of the gappedsubject, gappedquery, and the alignment itself
+	// SubjectStart  int
+	// QueryStart    int
+	// QueryAlignLen   int
+	// SubjectAlignLen int
 	// GappedSubject   string --> these can be reconstructed from the cigar if needed
 	// GappedQuery     string
 	//AlignmentRepresentation string --> same as above
 }
 
-type matrixMovement struct {
+type matrixMove struct {
 	Score  int
 	Origin int
 }
 
-type matrixDir int
+type derivedFrom int
 
 type matrixPos struct {
 	matrix int
@@ -117,52 +113,60 @@ type matrixPos struct {
 	j      int
 }
 
+type tracebackBranch struct {
+	dir      derivedFrom
+	branches []tracebackBranch
+}
+
+// the components of the alignment matrices
 type matrixElem struct {
 	score   int
 	numDirs int
-	dirs    [3]matrixDir
+	dirs    [3]derivedFrom // each matrix position can be derived from a max of three starting positions
+	// this is only possible if they have the same score...this will result in a branch during traceback
+	matrix int
 }
 
-// finds the maxmimum move from a list of possible matrix moves (when filling in the
-// alignment matrix)
-func maxMove(list ...matrixMovement) matrixMovement {
+// a DP alignment matric
+type alignMatrix [][]matrixElem
 
-	max := list[0]
-
-	for i := 1; i < len(list); i++ {
-		if list[i].Score > max.Score {
-			max = list[i]
-		}
-	}
-	return (max)
+// String creates a printable representation of the alignment matrix
+// TODO: implement this
+func (m alignMatrix) String() string {
+	return ("not sure how to do this yet")
 }
 
-func maxInt(list ...int) int {
-
-	max := list[0]
-	for i := 1; i < len(list); i++ {
-		if list[i] > max {
-			max = list[i]
-		}
-	}
-	//	fmt.Println(list)
-	//	fmt.Println(max)
-	return (max)
-}
-
-func bestMove(list ...matrixElem) matrixElem {
-	bestScore := list[0].score
-	bestMove := list[0]
+// take the potential movements for each matrix element and return the proper elements for
+// that matrix cells, including recording the several directions if the highest score is shared
+// by several potential movements
+func calcElem(list ...matrixElem) matrixElem {
+	idxOfBestElems := []int{0}
+	idxOfBestElems[0] = 0
+	highScore := list[0].score
 
 	for i := 1; i < len(list); i++ {
-		if list[i].score > bestScore {
-			bestMove = list[i]
+		if list[i].score > highScore {
+			idxOfBestElems = []int{i}
+		} else if list[i].score == highScore {
+			idxOfBestElems = append(idxOfBestElems, i)
 		}
 	}
-	return bestMove
+	bestDirs := [3]derivedFrom{}
+	for i := 0; i < len(idxOfBestElems); i++ {
+		bestDirs[i] = list[idxOfBestElems[i]].dirs[0]
+	}
+
+	finalElem := matrixElem{
+		score:   highScore,
+		numDirs: len(idxOfBestElems),
+		dirs:    bestDirs,
+	}
+	return finalElem
 }
 
 // Align applies a semi-global alignment algorithm to the query and subject sequences
+// and returns a slide of pairwise alignments (this slice is larger than one, or several alignments
+// result in the exact same alignment score)
 func (q NucSeq) sGAlign(s NucSeq) []PWAlignment {
 	//func (q NucSeq) sGAlign(s NucSeq, end string) []PWAlignment {
 
@@ -176,22 +180,18 @@ func (q NucSeq) sGAlign(s NucSeq) []PWAlignment {
 	lenJ := lenQ + 1
 
 	const (
-		h             = 6 //gap opening penalty
-		g             = 3 //gap extension penalty
+		h             = 6 // gap opening penalty
+		g             = 3 // gap extension penalty
 		matchScore    = 3
 		mismatchScore = -4
 	)
-	type revCIGAR []matrixDir
+
+	type expCIGAR []int // expanded cigar string
 
 	// TODO: add visualization of the alignment matrix
 
 	// set up matrices: H is the match matrix, I is the matrix of gaps in the *i* dimentions (eg
-	// along the subject), J is the matric for gaps in the *j* dimension (eg along the query), and
-	// D is the matrix of which direction (vector) was chosen to fill the H matrix.
-	// --> this approach with the "D" matrix doesnt work...need a direction for every value in all
-	// matrices...and potentially a slice of directions, if there is branching
-
-	// matrix position: score,[]directions{insertion extension, new insertion, match, mismatch}
+	// along the subject), J is the matric for gaps in the *j* dimension (eg along the query)
 
 	// TODO: optimization...used a fixed spot in memory instead of creating and destroying
 	// pointers for every iteration of this functions (accept an array as an argument?)
@@ -208,95 +208,164 @@ func (q NucSeq) sGAlign(s NucSeq) []PWAlignment {
 		I[j] = make([]matrixElem, lenI)
 	}
 
-	// matcher determines the approriate matrix movement valie from i-1, j-1 (match, mismatch, nuetral)
+	// matcher determines the approriate matrix movement value from i-1, j-1 (match, mismatch, nuetral)
 	// and returns it
-	matcher := func(i int, j int) matrixMovement {
+	matcher := func(i int, j int) matrixElem {
 
-		var returnValue matrixMovement
+		var returnValue matrixElem
 		switch {
 
 		case s[i-1] == q[j-1]:
 			// if the position is a match
-			returnValue.Score = H[j-1][i-1].score + matchScore
-			returnValue.Origin = match
+			returnValue.score = H[j-1][i-1].score + matchScore
+			returnValue.dirs[0] = match
 
 		case q[j-1] == ntN || s[i-1] == ntN:
 			// if the base is undefined treat it is a neutral
-			returnValue.Score = H[j-1][i-1].score
-			returnValue.Origin = neutral
+			returnValue.score = H[j-1][i-1].score
+			returnValue.dirs[0] = neutral
 
 		default:
 			// otherwise it is a mismatch
-			returnValue.Score = H[j-1][i-1].score + mismatchScore
-			returnValue.Origin = mismatch
+			returnValue.score = H[j-1][i-1].score + mismatchScore
+			returnValue.dirs[0] = mismatch
 		}
 		return (returnValue)
 	}
 
+	// fill in the matrices
+	for j := range H {
+		for i := range H[j] {
+			switch {
+
+			// if we are not in the first column or first row
+			case i != 0 && j != 0:
+
+				//fill in I
+				I[j][i] = calcElem(
+					matrixElem{score: H[j][i-1].score - h, dirs: [3]derivedFrom{openInsI}},
+					matrixElem{score: I[j][i-1].score - g, dirs: [3]derivedFrom{extendInsI}},
+				)
+
+				// fill in J
+				J[j][i] = calcElem(
+					matrixElem{score: H[j-1][i].score - h, dirs: [3]derivedFrom{openInsJ}},
+					matrixElem{score: J[j-1][i].score - g, dirs: [3]derivedFrom{extendInsJ}},
+				)
+
+				// fill in H and D
+				H[j][i] = calcElem(
+					matcher(i, j),
+					matrixElem{score: I[j][i].score, dirs: [3]derivedFrom{fromI}},
+					matrixElem{score: J[j][i].score, dirs: [3]derivedFrom{fromJ}},
+				)
+				//fmt.Println(bestMove.Score, bestMove.Origin)
+
+			// if we are in the first position (0,0):
+			case i == 0 && j == 0:
+
+				H[j][i] = matrixElem{score: 0, dirs: [3]derivedFrom{fromI}}
+				I[j][i] = matrixElem{score: 0, dirs: [3]derivedFrom{fromI}}
+				J[i][j] = matrixElem{score: 0, dirs: [3]derivedFrom{fromI}}
+
+			// if we are in the first column
+			case i == 0 && j != 0:
+
+				// TODO: fill this out
+				// H[j][i] =
+				// I[j][i] =
+				// J[j][i] =
+
+			// if we are in the first row
+			case i != 0 && j == 0:
+
+			}
+		}
+
+	}
+
+	fmt.Println(H)
+	fmt.Println("---")
+
 	// carries out the traceback operation through the three alignment matrices
-	// TODO: this needs to actualy traverse the other two matrices properly
-
+	// TODO: this needs to actually traverse the other two matrices properly
 	// TODO: this needs to recursivley traceback all "equivalent" matches
-
 	// traceback takes a starting position in a matrix and returns a list of directions
 	// to achieve the best alignment
 	// this function is recursive, so it calls itself and progressively builds the direction list
-	traceback := func(startI, startJ, startMarix int) revCIGAR {
+	var traceback func(int, int, alignMatrix) []expCIGAR
+	traceback = func(startI, startJ int, matrix alignMatrix) []expCIGAR {
 
-		var results revCIGAR
+		// <<<<<<<<<<<<<<<<<<<<<HERE>>>>>>>>>>>>>>>>>>>>>>
 
-		// TODO: fix this to not just take the first one...
-		currentVector := H[startJ][startI].dirs[0]
+		// outline:
+		// for each dir in current elemt
+		// - find the next elemement
+		// - run traceback
+		// - append the right cigar element to the array of results
+		// - return the array of results
 
-		// the end condition is if the starting coordinates are at an edge
+		var revCIGAR = new(expCIGAR) // the reverse, expanded CIGAR string
+
+		currentElem := matrix[startJ][startI]
+
+		var results []expCIGAR
+
+		for i := 0; i < currentElem.numDirs; i++ {
+			var tracebackI, tracebackJ, matrix int
+
+			switch currentElem.dirs[i] {
+			case openInsI:
+				tracebackI = startI - 1
+				tracebackJ = startJ
+				matrix = matrixH
+			case extendInsI:
+				tracebackI = startI - 1
+				tracebackJ = startJ
+				matrix = matrixI
+			case openInsJ:
+				tracebackI = startI
+				tracebackJ = startJ - 1
+				matrix = matrixH
+			case extendInsJ:
+				tracebackI = startI
+				tracebackJ = startJ - 1
+				matrix = matrixJ
+			case fromI:
+				tracebackI = startI
+				tracebackJ = startJ
+				matrix = matrixI
+			case fromJ:
+				tracebackI = startI
+				tracebackJ = startJ
+				matrix = matrixI
+
+			case match:
+
+			case mismatch:
+
+			case neutral:
+
+			}
+			prelimResults := traceback(tracebackI, tracebackJ, matrix)
+			for i, _ := range prelimResults {
+				prelimResults[i] = append(prelimResults[i], currentElem.dirs[i])
+			}
+			results = append(results, prelimResults...)
+		}
+
+		// the end condition is if the starting coordinates are at any edge
 		if startI == 0 || startJ == 0 {
-			results = append(results, edge)
-			return results
+			for i, _ := range results {
+				results[i] = append(results[i], edge)
+			}
+
 		}
-
-		var nextI int
-		var nextJ int
-		var nextMatrix int
-
-		switch currentVector {
-		case match:
-			nextI = startI - 1
-			nextJ = startJ - 1
-			nextMatrix = matrixH
-		case mismatch:
-			nextI = startI - 1
-			nextJ = startJ - 1
-			nextMatrix = matrixH
-		case neutral:
-			nextI = startI - 1
-			nextJ = startJ - 1
-			nextMatrix = matrixH
-		case openInsI:
-			nextI = startI - 1
-			nextJ = startJ
-			nextMatrix = matrixH
-		case extendInsI:
-			nextI = startI - 1
-			nextJ = startJ
-			nextMatrix = matrixI
-		case openInsJ:
-			nextI = startI
-			nextJ = startJ - 1
-			nextMatrix = matrixH
-		case extendInsJ:
-			nextI = startI
-			nextJ = startJ - 1
-			nextMatrix = matrixJ
-		}
-
-		results[0] = currentVector
-		nextPos := traceback(nextI, nextJ, nextMatrix)
-		results = append(results, nextPos)
 		return results
 	}
 
-	tbackToPWAlign := func(r revCIGAR, traceStart matrixPos) PWAlignment {
-		var CIGAR string
+	tbackToPWAlign := func(r expCIGAR, traceStart matrixPos) PWAlignment {
+		var cIGAR string
 
 		tracePos := traceStart
 		// this check protects against the situation where no alignment takes place
@@ -332,10 +401,10 @@ func (q NucSeq) sGAlign(s NucSeq) []PWAlignment {
 				case nextVector == edge:
 					nextLetter = ""
 				}
-				CIGAR += nextLetter
+				cIGAR += nextLetter
 			}
 		} else {
-			CIGAR = ""
+			cIGAR = ""
 		}
 
 		// TODO: create new alignment object
@@ -348,12 +417,12 @@ func (q NucSeq) sGAlign(s NucSeq) []PWAlignment {
 
 		queryStart := tracePos.j - 1
 
-		if CIGAR != "" {
+		if cIGAR != "" {
 			switch {
-			case string(CIGAR[0]) == "i":
+			case string(cIGAR[0]) == "i":
 				subjectStart = tracePos.i - 1
 				queryStart = tracePos.j
-			case string(CIGAR[0]) == "j":
+			case string(cIGAR[0]) == "j":
 				subjectStart = tracePos.i
 				queryStart = tracePos.j - 1
 
@@ -367,7 +436,7 @@ func (q NucSeq) sGAlign(s NucSeq) []PWAlignment {
 			newAlignment = PWAlignment{
 				Subject:       s,
 				Query:         q,
-				ExpandedCIGAR: CIGAR,
+				ExpandedCIGAR: cIGAR,
 				SubjectStart:  subjectStart,
 				QueryStart:    queryStart,
 			}
@@ -375,63 +444,11 @@ func (q NucSeq) sGAlign(s NucSeq) []PWAlignment {
 			newAlignment = PWAlignment{
 				Subject:       s,
 				Query:         q,
-				ExpandedCIGAR: CIGAR,
+				ExpandedCIGAR: cIGAR,
 			}
 		}
 		return newAlignment
 	}
-
-	// fill in the matrices
-	for j := range H {
-		for i := range H[j] {
-			switch {
-
-			// if we are not in the first column or first row
-			case i != 0 && j != 0:
-
-				//fill in I
-				I[j][i] = bestMove(
-					matrixElem{score: H[j][i-1].score - h, dirs: [3]matrixDir{openInsI}},
-					matrixElem{score: I[j][i-1].score - g, dirs: [3]matrixDir{extendInsI}},
-				)
-
-				// fill in J
-				J[j][i] = bestMove(
-					matrixElem{score: H[j-1][i].score - h, dirs: [3]matrixDir{openInsJ}},
-					matrixElem{score: J[j-1][i].score - g, dirs: [3]matrixDir{extendInsJ}},
-				)
-
-				// fill in H and D
-				bestMove := maxMove(
-					matcher(i, j),
-					matrixMovement{I[j][i], insI},
-					matrixMovement{J[j][i], insJ},
-				)
-				H[j][i] = bestMove.Score
-				D[j][i] = bestMove.Origin
-				//fmt.Println(bestMove.Score, bestMove.Origin)
-
-			// if we are in the first position (0,0):
-			case i == 0 && j == 0:
-
-				H[j][i] = 0
-				I[j][i] = 0
-				J[i][j] = 0
-				D[i][j] = gap
-
-			// if we are in the first column
-			case i == 0 && j != 0:
-
-			// if we are in the first row
-			case i != 0 && j == 0:
-
-			}
-		}
-
-	}
-
-	fmt.Println(H)
-	fmt.Println("---")
 
 	// create traceback
 
@@ -484,7 +501,7 @@ func (q NucSeq) sGAlign(s NucSeq) []PWAlignment {
 		revCIGAR = nil
 	}
 
-	// TODO update this for more alignments if the are "equivalent"
+	// TODO update this for more alignments if they are "equivalent"
 	return tbackToPWAlign(traceback(maxPos))
 
 }

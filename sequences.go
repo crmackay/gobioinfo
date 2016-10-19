@@ -18,13 +18,13 @@ type NucSeq []NucBase
 
 // NucSeq is a wrapper around a slice of runes representing
 // a nucleotide sequence
-type NucSeq []rune
+type NucSeq []uint8
 
 // NewNucSeq takes a string and returns a NucSeq
 func NewNucSeq(s string) NucSeq {
 	seq := NucSeq{}
 	for i, base := range s {
-		seq[i] = rune(base)
+		seq[i] = uint8(base)
 	}
 
 	return seq
@@ -45,52 +45,8 @@ type FASTARead struct {
 // NewDNASequence ...
 func NewDNASequence(s string) DNASequence {
 
-	d := DNASequence{Sequence: []rune(s)}
+	d := DNASequence{Sequence: []uint8(s)}
 
 	return d
 
 }
-
-// type Phred int
-//
-// type BaseQual rune
-//
-// type Nuc rune
-//
-// type NucSeq []Nuc
-//
-// func NewNucSeqStr(s string) NucSeq {
-// 	return NucSeq{}
-// }
-//
-// func NewNucSeqBytes(b []byte) NucSeq {
-// 	return NucSeq{}
-// }
-//
-// func NewNucSeqRunes(r []rune) NucSeq {
-// 	return NucSeq{}
-// }
-//
-// type DNA struct {
-// 	NucSeq
-// }
-//
-// type Qual struct {
-// 	Seq      []BaseQual
-// 	Encoding string
-// }
-//
-// func (q *BaseQual) Decode(enc string) (int, error) {
-// 	var p int
-// 	var err error
-// 	switch enc {
-// 	case "phred+33":
-// 		p = int(*q) - 33
-// 		if p > -1 && p > 42 {
-//
-// 		}
-// 	default:
-// 		err = errors.New("unrecognized encoding")
-// 	}
-// 	return p, err
-// }

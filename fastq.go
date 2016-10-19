@@ -20,17 +20,15 @@ type FASTQRead struct {
 
 // PHRED is
 type PHRED struct {
-	Encoded  []rune
-	Decoded  []uint8
-	Encoding string
+	Encoded []rune
+	Offset  int
 }
 
 // NewFASTQRead ...
-func NewFASTQRead(ln1 string, ln2 []rune, ln3 string, ln4 []rune) (newRead FASTQRead) {
+func NewFASTQRead(ln1 string, ln2 string, ln3 string, ln4 string) (newRead FASTQRead) {
 
-	phredEncoding := "illumina_1.8"
-
-	decodedQuality := DecodePHRED(ln4, phredEncoding)
+	// "illumina_1.8", this is the default until we make this user configurable
+	phredOffset := 33
 
 	newSequence := NucSeq(ln2)
 
@@ -41,9 +39,8 @@ func NewFASTQRead(ln1 string, ln2 []rune, ln3 string, ln4 []rune) (newRead FASTQ
 		},
 		Misc: ln3,
 		PHRED: PHRED{
-			Encoded:  ln4,
-			Decoded:  decodedQuality,
-			Encoding: phredEncoding,
+			Encoded: []rune(ln4),
+			Offset:  phredOffset,
 		},
 	}
 
@@ -51,79 +48,22 @@ func NewFASTQRead(ln1 string, ln2 []rune, ln3 string, ln4 []rune) (newRead FASTQ
 }
 
 // DecodePHRED takes a
-func DecodePHRED(encoded []rune, encoding string) (decoded []uint8) {
+func DecodePHRED(encoded []rune, phredOffset int) (decoded []uint8) {
 	decoded = make([]uint8, len(encoded))
 	for i, rune := range encoded {
-		decoded[i] = PHREDEncodings[encoding][string(rune)]
+		decoded[i] = PHREDSymToNum(rune, phredOffset)
 	}
 	return decoded
 }
 
-// Decode turns the Encoded part of a PHRED struct and in-place decodes it
-// and stores in the the Decoded element of the PHRED
-func (p *PHRED) Decode() {
-	decodedPHRED := make([]uint8, len(p.Encoded))
-
-	for i, rune := range p.Encoded {
-		decodedPHRED[i] = PHREDEncodings[p.Encoding][string(rune)]
-	}
-
-	p.Decoded = decodedPHRED
+// PHREDSymToNums is is a simple function that takes the symbolic representation of a PHRED score (ala
+// an encoded PHRED score) and its encoding offset, converts the symbol to its integer value, and
+// subtracts the offset, arriving at the decoded PHRED score. The default offset if 33, which is used
+// by Illumina in version 1.8+
+func PHREDSymToNum(value rune, offset int) uint8 {
+	return uint8(int(value) - offset)
 }
 
-//TODO:optimization - this encoding and decoding of PHRED scores might be able to be done faster if
-// done with math on the ACII codepoints instead of a map lookup
-//		eg: rune("!") = 33
-//		    rune("\"") = 34
-//			decodedPHRED = rune(base) - 33
-
-// this would also make it easier to add new encodings
-// TODO: rename to phred+33
-
-// PHREDEncodings is
-var PHREDEncodings = map[string]map[string]uint8{
-	"illumina_1.8": {
-		"!":  0,
-		"\"": 1,
-		"#":  2,
-		"$":  3,
-		"%":  4,
-		"&":  5,
-		"'":  6,
-		"(":  7,
-		")":  8,
-		"*":  9,
-		"+":  10,
-		",":  11,
-		"-":  12,
-		".":  13,
-		"/":  14,
-		"0":  15,
-		"1":  16,
-		"2":  17,
-		"3":  18,
-		"4":  19,
-		"5":  20,
-		"6":  21,
-		"7":  22,
-		"8":  23,
-		"9":  24,
-		":":  25,
-		";":  26,
-		"<":  27,
-		"=":  28,
-		">":  29,
-		"?":  30,
-		"@":  31,
-		"A":  32,
-		"B":  33,
-		"C":  34,
-		"D":  35,
-		"E":  36,
-		"F":  37,
-		"G":  38,
-		"H":  39,
-		"I":  40,
-		"J":  41,
-	},
+func PHREDNumToSym(value uint8, offset int) rune {
+	return rune(int(value) + offset)
 }
