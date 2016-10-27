@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <math.h>
 #include <string.h>
+#include <stdlib.h>
 
 typedef enum {
 	DIAG_MATCH,			// diagonal move because of a MATCH
@@ -120,7 +121,7 @@ void printMatrixInt(int rows, int cols, int m[rows][cols])
 
 }
 
-void align(char* subj, char* query, char* query_quals )
+int align(char* subj, char* query, char* query_quals )
 {
 
     int max_i = strlen(subj)+1;
@@ -231,18 +232,115 @@ void align(char* subj, char* query, char* query_quals )
 
     printf("dir matrix:\n");
 
+
+
 	printMatrixInt(max_i, max_j, D);
 
-	// TODO: fix matrix...it's not working right
+	// find the highest value in the last column or last row of matrix H
+	int highest_score_i = max_i-1;
+	int highest_score_j = max_j-1;
+	double highest_score = H[highest_score_i][highest_score_j];
+	for (int i = 1; i < max_i; i++)
+	{
+		if (H[i][max_j-1] > highest_score)
+		{
+			highest_score = H[i][max_j-1];
+			highest_score_i = i;
+			highest_score_j = max_j-1;
+		}
+	}
+	for (int j = 1; j < max_j-1; j++)
+	{
+		if (H[max_i-1][j] > highest_score)
+		{
+			highest_score = H[max_i-1][j];
+			highest_score_i = max_i-1;
+			highest_score_j = j;
+		}
+	}
+	// printf("here\n");
 
-	// TODO: traceback
+	int tback_pos_i = highest_score_i;
+	int tback_pos_j = highest_score_j;
+	matrix_move curr_dir = D[highest_score_i][highest_score_j];
+	matrix_move rev_cigar[max_i + max_j];
+	int rev_cigar_pos = 0;
+
+	// while both traceback cursors are greater than zero (ie we are not at an edge yet)
+	while (curr_dir != EDGE)
+	{
+		printf("tback_pos_i: %i \ntback_pos_j: %i\n\n", tback_pos_i, tback_pos_j);
+
+		rev_cigar[rev_cigar_pos] = curr_dir;
+		rev_cigar_pos ++;
+		switch(curr_dir)
+		{
+			case DIAG_MATCH:			// diagonal move because of a MATCH
+				tback_pos_i = tback_pos_i - 1;
+				tback_pos_j = tback_pos_j - 1;
+				break;
+
+			case DIAG_MISMATCH:			// diagonal move because of a mismatch
+				tback_pos_i = tback_pos_i - 1;
+				tback_pos_j = tback_pos_j - 1;
+				break;
+
+			case DIAG_N:				// diagonal move because of the query string has an "N"
+				tback_pos_i = tback_pos_i - 1;
+				tback_pos_j = tback_pos_j - 1;
+				break;
+
+			case INS_I:					// insertion in the "i" direction
+				tback_pos_i = tback_pos_i - 1;
+				break;
+
+			case INS_J:					// insertion in the "j" direction
+				tback_pos_j = tback_pos_j - 1;
+				break;
+
+			case EDGE:
+				// this should never run
+				break;
+		}
+		curr_dir = D[tback_pos_i][tback_pos_j];
+	}
+
+	matrix_move cigar[rev_cigar_pos+1];
+
+	printf("rev-cigar_pos: %i\n", rev_cigar_pos);
+
+	char* cigar_str = malloc((rev_cigar_pos+1)*sizeof(char));
+	// error check on the malloc call:
+	if (cigar_str == NULL){printf("there was an error allocating memory\n"); return(1);}
+
+	printf("here\n");
+	// invert the reverse cigar into a proper cigar string
+	for (int i = 0; i < rev_cigar_pos; i++)
+	{
+		cigar[i] = rev_cigar[rev_cigar_pos-1-i];
+		printf("rev cigar val no: %i is %i\n", i, rev_cigar[rev_cigar_pos-1-i]);
+		cigar_str[i] = (char) rev_cigar[rev_cigar_pos - 1 - i]+65;
+	}
+
+	printf("%s\n", cigar_str);
 
 	// TODO: alignment representation
 
 	// TODO: bayesian prob test
 
+	// calc P(L|S) and P(L'|S), for the alignment, print out true or false
+
+
+	// TODO: make more robust so that a read and linker can be inputted, they are processed, and
+	// then the clean linker is returned...
+
+	// TODO: make a verbose version that prints to stdout data re: cutting
+	
 	// TODO: deal with conflicts on matrix creation? two dirs with same value?
 
+
+
+	return(0);
 }
 
 int main(void)
@@ -252,6 +350,9 @@ int main(void)
 	char* query = "TATATGTGC";
 	char* quals = "DDDDDFFFF";
 
-	align(subject, query, quals);
+	int err  = align(subject, query, quals);
+	if (err != 0){return(1);}
+
+	return(0);
 
 }
