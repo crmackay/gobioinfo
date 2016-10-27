@@ -71,10 +71,13 @@ func align(subj, query, quals []byte) [][]float64 {
 
 	matrixSLP := make([][]float64, len(subj)+1)
 
+	matrixDir := make([][]int, len(subj)+1)
+
 	for i := range matrix {
 		matrix[i] = make([]float64, len(query)+1)
 		matrixSL[i] = make([]float64, len(query)+1)
 		matrixSLP[i] = make([]float64, len(query)+1)
+		matrixDir[i] = make([]int, len(query)+1)
 	}
 
 	for i := range matrix {
@@ -83,11 +86,15 @@ func align(subj, query, quals []byte) [][]float64 {
 				matrix[i][j] = 1
 
 				// matrixSL[i][j] =
+				// matrixSLP[i][j] =
+				// matrixDir[i][j] =
 
 			} else if query[j-1] == byte('N') {
 				matrix[i][j] = matrix[i-1][j-1]
 
-				// matrix[i][j] =
+				// matrixSL[i][j] =
+				// matrixSLP[i][j] =
+				// matrixDir[i][j] =
 
 			} else {
 				probSC, dir := max(
@@ -103,13 +110,30 @@ func align(subj, query, quals []byte) [][]float64 {
 				// TODO: this is wrong: we need to store each of these values individually... and
 				// recalculated at each one... the alignment matrix could be probSC/probSCP
 				matrix[i][j] = probSC / probSCP
+
+				// matrixSL[i][j] =
+				// matrixSLP[i][j] =
+				// matrixDir[i][j] =
+
 			}
 		}
 	}
 
+	// find highest SL/SLP ratio
+
+	// traceback
+
+	// return alignment representation, and P(S|L), and P(S|L')
+
 	return matrix
 
 }
+
+//
+// func isAlignmentLinker(a alignment) bool {
+
+// take alignment, calculate P(L|S) and P(L'|S) and compare, return true/false
+// }
 
 func printMatrix(m [][]float64) {
 	for i := range m {
