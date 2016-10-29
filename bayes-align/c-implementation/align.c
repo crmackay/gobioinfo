@@ -3,6 +3,10 @@
 #include <string.h>
 #include <stdlib.h>
 
+#include <sys/time.h>
+#include <sys/resource.h>
+
+
 typedef enum {
 	DIAG_MATCH,			// diagonal move because of a MATCH
 	DIAG_MISMATCH,		// diagonal move because of a mismatch
@@ -20,18 +24,18 @@ const double probPCRError = 0.00001490711984999862 + (0.00001038461538461538 * 3
 double phredToProbIncorrect(char p)
 {
 	int phred = (int)p - 33;
-	printf("pred int for %c: %i\n", p, phred);
+	// printf("pred int for %c: %i\n", p, phred);
 	double prob = pow(10, (-((double)phred) / 10));
-	printf("pred prob of miscall for %c: %f\n", p, prob);
+	// printf("pred prob of miscall for %c: %f\n", p, prob);
 	return prob;
 }
 
 int max_match(double values[3])
 {
 
-	// printf("0: %f\n", values[0]);
-	// printf("1: %f\n", values[1]);
-	// printf("2: %f\n", values[2]);
+	// // printf("0: %f\n", values[0]);
+	// // printf("1: %f\n", values[1]);
+	// // printf("2: %f\n", values[2]);
 
 	int maxIndex = 0;
 
@@ -43,7 +47,7 @@ int max_match(double values[3])
         }
     }
 
-	// printf("max: %i\n", maxIndex);
+	// // printf("max: %i\n", maxIndex);
 
     return maxIndex;
 }
@@ -76,7 +80,7 @@ double probSLMatch(char s, char q, char q_qual)
 
 	double value = (probPCRError * probMisscall) + (probCorrcall * (1.0 - probPCRError));
 
-	// printf("prob SL for %c, %c, %c, is: %2.10f\n", s, q, q_qual, value);
+	// // printf("prob SL for %c, %c, %c, is: %2.10f\n", s, q, q_qual, value);
 	return(value);
 }
 
@@ -89,7 +93,7 @@ double probSLMismatch(char s, char q, char q_qual)
 
 	double value = (1.0 / 3.0 * probMisscall * (1.0 - probPCRError)) + (1.0 / 3.0 * probCorrcall * probPCRError) + (2.0 / 9.0 * probMisscall * probPCRError);
 
-	// printf("prob SLM for %c, %c, %c, is: %2.10f\n", s, q, q_qual, value);
+	// // printf("prob SLM for %c, %c, %c, is: %2.10f\n", s, q, q_qual, value);
 
 	return value;
 }
@@ -120,8 +124,11 @@ void printMatrixInt(int rows, int cols, int m[rows][cols])
 	printf("\n");
 
 }
+// refactor code a bit:
+// make alignment matrices, traceback, test/trim, all seperate...testable things
 
-int align(char* subj, char* query, char* query_quals )
+
+int align(char* subj, char* query, char* query_quals)
 {
 
     int max_i = strlen(subj)+1;
@@ -184,11 +191,11 @@ int align(char* subj, char* query, char* query_quals )
 						break;
 				}
 
-				// printf("diag_value: %f\n", diag_value);
+				// // printf("diag_value: %f\n", diag_value);
 
-				// printf("diag_PSL: %f\n", diag_PSL);
+				// // printf("diag_PSL: %f\n", diag_PSL);
 
-				// printf("diag_PSLP: %f\n", diag_PSLP);
+				// // printf("diag_PSLP: %f\n", diag_PSLP);
 
 				double gap_i = H[i-1][j] + log10(probPCRError);
 
@@ -258,21 +265,18 @@ int align(char* subj, char* query, char* query_quals )
 			highest_score_j = j;
 		}
 	}
-	// printf("here\n");
+	// // printf("here\n");
 
 	int tback_pos_i = highest_score_i;
 	int tback_pos_j = highest_score_j;
 	matrix_move curr_dir = D[highest_score_i][highest_score_j];
 	matrix_move rev_cigar[max_i + max_j];
 	int rev_cigar_pos = 0;
-
+	rev_cigar[rev_cigar_pos] = curr_dir;
 	// while both traceback cursors are greater than zero (ie we are not at an edge yet)
 	while (curr_dir != EDGE)
 	{
-		printf("tback_pos_i: %i \ntback_pos_j: %i\n\n", tback_pos_i, tback_pos_j);
-
-		rev_cigar[rev_cigar_pos] = curr_dir;
-		rev_cigar_pos ++;
+		// // printf("tback_pos_i: %i \ntback_pos_j: %i\n\n", tback_pos_i, tback_pos_j);
 		switch(curr_dir)
 		{
 			case DIAG_MATCH:			// diagonal move because of a MATCH
@@ -303,28 +307,35 @@ int align(char* subj, char* query, char* query_quals )
 				break;
 		}
 		curr_dir = D[tback_pos_i][tback_pos_j];
+		rev_cigar_pos ++;
+		rev_cigar[rev_cigar_pos] = curr_dir;
+
 	}
 
 	matrix_move cigar[rev_cigar_pos+1];
 
-	printf("rev-cigar_pos: %i\n", rev_cigar_pos);
+	// printf("rev-cigar_pos: %i\n", rev_cigar_pos);
 
 	char* cigar_str = malloc((rev_cigar_pos+1)*sizeof(char));
 	// error check on the malloc call:
 	if (cigar_str == NULL){printf("there was an error allocating memory\n"); return(1);}
 
-	printf("here\n");
+	// printf("here\n");
 	// invert the reverse cigar into a proper cigar string
 	for (int i = 0; i < rev_cigar_pos; i++)
 	{
 		cigar[i] = rev_cigar[rev_cigar_pos-1-i];
-		printf("rev cigar val no: %i is %i\n", i, rev_cigar[rev_cigar_pos-1-i]);
+		// printf("rev cigar val no: %i is %i\n", i, rev_cigar[rev_cigar_pos-1-i]);
 		cigar_str[i] = (char) rev_cigar[rev_cigar_pos - 1 - i]+65;
 	}
+	cigar_str[rev_cigar_pos] = '\0';
 
-	printf("%s\n", cigar_str);
+	// printf("%s\n", cigar_str);
 
 	// TODO: alignment representation
+
+
+
 
 	// TODO: bayesian prob test
 
@@ -335,7 +346,7 @@ int align(char* subj, char* query, char* query_quals )
 	// then the clean linker is returned...
 
 	// TODO: make a verbose version that prints to stdout data re: cutting
-	
+
 	// TODO: deal with conflicts on matrix creation? two dirs with same value?
 
 
@@ -343,15 +354,33 @@ int align(char* subj, char* query, char* query_quals )
 	return(0);
 }
 
-int main(void)
+
+double get_time(void)
+{
+	struct timeval t;
+	struct timezone tzp;
+	gettimeofday(&t, &tzp);
+	return t.tv_sec + t.tv_usec*1e-6;
+}
+
+
+int main(int argc, char *argv[])
 {
 
-	char* subject = "GTGTCAG";
-	char* query = "TATATGTGC";
-	char* quals = "DDDDDFFFF";
+
+
+	double start = get_time();
+	// printf("start:\t%1.5f\n", start);
+	char *subject = argv[1];
+	//char* subject = "GTGTCAG";
+	char* query = "GTGTCAGT";
+	char* quals = "DDDDDFFF";
 
 	int err  = align(subject, query, quals);
 	if (err != 0){return(1);}
+
+	double end = get_time();
+	printf("end:\t%1.5f\n", end-start);
 
 	return(0);
 
